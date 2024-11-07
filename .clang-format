@@ -1,0 +1,23 @@
+AlignArrayOfStructures: Right
+AlignConsecutiveMacros: Consecutive
+AlignConsecutiveShortCaseStatements: 
+  Enabled: true
+AlignEscapedNewlines: LeftWithLastLine
+AlignOperands: AlignAfterOperator
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+BinPackParameters: true
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterControlStatement: Always
+  AfterFunction: true
+BreakAfterReturnType: All
+BreakBeforeTernaryOperators: true
+IncludeBlocks: Regroup
+IndentWidth: 4
+PointerAlignment: Left
+RemoveParentheses: ReturnStatement
+SortIncludes: CaseInsensitive
+SpaceAfterCStyleCast: true
