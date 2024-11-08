@@ -27,5 +27,5 @@ This project uses a Makefile to build the program. Run the following command
 to build and start the program.
 
 ```bash
-make build && ./bin/main
+make run
 ```
