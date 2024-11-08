@@ -1,17 +1,20 @@
-// #include "../include/raylib/include/raylib.h"
+#include "pong/pong.h"
 #include "raylib.h"
+
+#define WINDOW_WIDTH  800
+#define WINDOW_HEIGHT 600
 
 int
 main()
 {
-    InitWindow(800, 600, "Starting Example");
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Starting Example");
 
     while (!WindowShouldClose())
     {
         BeginDrawing();
 
         ClearBackground(BLACK);
-        DrawText("Works as intended", 10, 10, 20, WHITE);
+        render_game(WINDOW_WIDTH, WINDOW_HEIGHT);
 
         EndDrawing();
     }
