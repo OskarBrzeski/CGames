@@ -1,3 +1,6 @@
+run: build
+	./bin/main
+
 build: main.o pong.o
 	mkdir -p ./bin
 	cc -o ./bin/main main.o pong.o -lm -lraylib
