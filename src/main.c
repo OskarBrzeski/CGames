@@ -8,13 +8,14 @@ int
 main()
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Starting Example");
+    SetTargetFPS(60);
 
     while (!WindowShouldClose())
     {
         BeginDrawing();
 
         ClearBackground(BLACK);
-        render_game(WINDOW_WIDTH, WINDOW_HEIGHT);
+        render_game();
 
         EndDrawing();
     }

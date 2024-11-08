@@ -4,13 +4,14 @@ This is a collection of basic games written in C and using Raylib.
 
 ## Completed Games
 
-No games have been completed yet.
+I have completed the following games.
+
+- Pong
 
 ## Planned Games
 
 I plan to create the following games.
 
-- Pong
 - Snake
 - Tetris
 
