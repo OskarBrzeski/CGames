@@ -7,39 +7,36 @@
 #define PADDLE_HEIGHT 60
 #define PADDLE_WIDTH  10
 #define PADDLE_MARGIN 20
-#define PADDLE_SPEED  400
+#define PADDLE_SPEED  270
+#define BALL_SPEED    360
 #define BALL_RAIDUS   8
-
-typedef struct {
-    float player_pos;
-    float opponent_pos;
-    Vector2 ball_pos;
-    Vector2 ball_vel;
-    int player_score;
-    int opponent_score;
-} GameState;
 
 GameState global = {
     .player_pos = 0,
     .opponent_pos = 0,
-    .ball_pos = { .x = 50,  .y = 50},
-    .ball_vel = {.x = 220, .y = 220},
+    .ball_pos = {        .x = 50,         .y = 50},
+    .ball_vel = {.x = BALL_SPEED, .y = BALL_SPEED},
     .player_score = 0,
     .opponent_score = 0
 };
 
 void
-render_game()
+run_game(void)
 {
     int window_width = GetRenderWidth();
     int window_height = GetRenderHeight();
-
     float dt = GetFrameTime();
 
     handle_user_input(window_height, dt);
+    move_opponent(dt);
     update_ball_pos(window_width, window_height, dt);
-    handle_FPS_toggle();
 
+    render_game(window_width, window_height);
+}
+
+void
+render_game(int window_width, int window_height)
+{
     DrawRectangleRec(player_paddle_to_rec(), WHITE);
     DrawRectangleRec(opponent_paddle_to_rec(window_width), WHITE);
     DrawCircle(global.ball_pos.x, global.ball_pos.y, BALL_RAIDUS, WHITE);
@@ -54,8 +51,20 @@ render_game()
              WHITE);
 }
 
+void
+move_opponent(float dt)
+{
+    if (global.ball_pos.y < global.opponent_pos + PADDLE_HEIGHT / 2.0)
+    {
+        global.opponent_pos -= PADDLE_SPEED * dt;
+    } else
+    {
+        global.opponent_pos += PADDLE_SPEED * dt;
+    }
+}
+
 Rectangle
-player_paddle_to_rec()
+player_paddle_to_rec(void)
 {
     return (Rectangle) {.x = PADDLE_MARGIN,
                         .y = global.player_pos,
@@ -75,7 +84,6 @@ opponent_paddle_to_rec(int window_width)
 void
 handle_user_input(int window_height, float dt)
 {
-
     if (IsKeyDown(KEY_DOWN))
     {
         global.player_pos += PADDLE_SPEED * dt;
@@ -96,33 +104,12 @@ update_ball_pos(int window_width, int window_height, float dt)
     global.ball_pos.x += global.ball_vel.x * dt;
     global.ball_pos.y += global.ball_vel.y * dt;
 
-    if (global.ball_pos.y < BALL_RAIDUS)
-    {
-        global.ball_vel.y = -global.ball_vel.y;
-    } else if (global.ball_pos.y > window_height - BALL_RAIDUS)
-    {
-        global.ball_vel.y = -global.ball_vel.y;
-    }
+    int hit_walls = global.ball_pos.y < BALL_RAIDUS ||
+                    global.ball_pos.y > window_height - BALL_RAIDUS;
+    if (hit_walls) { global.ball_vel.y = -global.ball_vel.y; }
 
-    if (CheckCollisionCircleRec(global.ball_pos, BALL_RAIDUS,
-                                player_paddle_to_rec()))
-    {
-        global.ball_vel.x = -global.ball_vel.x;
-        if (global.ball_pos.y < global.player_pos ||
-            global.ball_pos.y > global.player_pos + PADDLE_HEIGHT)
-        {
-            global.ball_vel.y = -global.ball_vel.y;
-        }
-    } else if (CheckCollisionCircleRec(global.ball_pos, BALL_RAIDUS,
-                                       opponent_paddle_to_rec(window_width)))
-    {
-        global.ball_vel.x = -global.ball_vel.x;
-        if (global.ball_pos.y < global.player_pos ||
-            global.ball_pos.y > global.player_pos + PADDLE_HEIGHT)
-        {
-            global.ball_vel.y = -global.ball_vel.y;
-        }
-    }
+    ball_hit_player();
+    ball_hit_opponent(window_width);
 
     if (global.ball_pos.x < 0)
     {
@@ -137,19 +124,34 @@ update_ball_pos(int window_width, int window_height, float dt)
     }
 }
 
-int FPS_target_index = 0;
 void
-handle_FPS_toggle()
+ball_hit_player(void)
 {
-    int FPS_targets[] = {24, 30, 48, 60, 90, 120, 144, 240};
-    int FPS_target_length = sizeof(FPS_targets) / sizeof(FPS_targets[0]);
-    int key;
-    do {
-        key = GetKeyPressed();
-        if (key == KEY_SPACE)
+    Rectangle player = player_paddle_to_rec();
+    if (CheckCollisionCircleRec(global.ball_pos, BALL_RAIDUS, player))
+    {
+        global.ball_vel.x = -global.ball_vel.x;
+        if (global.ball_pos.y < global.player_pos - BALL_RAIDUS * 2.0 / 3.0 ||
+            global.ball_pos.y >
+                global.player_pos + PADDLE_HEIGHT + BALL_RAIDUS * 2.0 / 3.0)
         {
-            FPS_target_index = (FPS_target_index + 1) % FPS_target_length;
-            SetTargetFPS(FPS_targets[FPS_target_index]);
+            global.ball_vel.y = -global.ball_vel.y;
         }
-    } while (key != 0);
+    }
+}
+
+void
+ball_hit_opponent(int window_width)
+{
+    Rectangle opponent = opponent_paddle_to_rec(window_width);
+    if (CheckCollisionCircleRec(global.ball_pos, BALL_RAIDUS, opponent))
+    {
+        global.ball_vel.x = -global.ball_vel.x;
+        if (global.ball_pos.y < global.opponent_pos - BALL_RAIDUS * 2 / 3 ||
+            global.ball_pos.y >
+                global.opponent_pos + PADDLE_HEIGHT + BALL_RAIDUS * 2 / 3)
+        {
+            global.ball_vel.y = -global.ball_vel.y;
+        }
+    }
 }
