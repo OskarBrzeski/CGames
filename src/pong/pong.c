@@ -21,7 +21,7 @@ GameState global = {
 };
 
 void
-run_game(void)
+run_pong(void)
 {
     int window_width = GetRenderWidth();
     int window_height = GetRenderHeight();

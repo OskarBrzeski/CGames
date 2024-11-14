@@ -12,7 +12,7 @@ typedef struct {
     int opponent_score;
 } GameState;
 
-void run_game(void);
+void run_pong(void);
 
 void
 render_game(int window_width, int window_height);

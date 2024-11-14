@@ -1,4 +1,4 @@
-#include "pong/pong.h"
+#include "menu/menu.h"
 #include "raylib.h"
 
 #define WINDOW_WIDTH  800
@@ -12,13 +12,14 @@ main()
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Starting Example");
     SetTargetFPS(60);
+    SetExitKey(KEY_F4);
 
     while (!WindowShouldClose())
     {
         BeginDrawing();
 
         ClearBackground(BLACK);
-        run_game();
+        run_menu();
         handle_FPS_toggle();
 
         EndDrawing();
