@@ -10,32 +10,17 @@ typedef struct {
     Vector2 ball_vel;
     int player_score;
     int opponent_score;
-} GameState;
+} PongGameState;
 
-void run_pong(void);
-
-void
-render_game(int window_width, int window_height);
-
-void
-move_opponent(float dt);
-
-Rectangle
-player_paddle_to_rec(void);
-
-Rectangle
-opponent_paddle_to_rec(int window_width);
-
-void
-handle_user_input(int window_height, float dt);
-
-void
-update_ball_pos(int window_width, int window_height, float dt);
-
-void
-ball_hit_player(void);
-
-void
-ball_hit_opponent(int window_width);
+void pong_new_game(void);
+void pong_run_game();
+void render_game(int window_width, int window_height);
+void move_opponent(float dt);
+Rectangle player_paddle_to_rec();
+Rectangle opponent_paddle_to_rec(int window_width);
+void handle_user_input(int window_height, float dt);
+void update_ball_pos(int window_width, int window_height, float dt);
+void ball_hit_player();
+void ball_hit_opponent(int window_width);
 
 #endif

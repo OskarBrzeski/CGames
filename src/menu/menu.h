@@ -1,14 +1,17 @@
-void
-run_menu(void);
+#ifndef MENU_H
+#define MENU_H
 
-void
-render_menu(void);
+typedef enum { MENU, PONG, SNAKE, TETRIS } GameScreen;
 
-void
-handle_ingame_input(void);
+typedef struct 
+{
+    int select_position;
+} MenuState;
 
-void
-handle_input(void);
+void run_menu(void);
+void render_menu(void);
+void handle_ingame_input(void);
+void handle_input(void);
+void change_game(void);
 
-void
-change_game(void);
+#endif

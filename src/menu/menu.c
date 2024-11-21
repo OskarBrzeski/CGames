@@ -3,10 +3,6 @@
 #import "../pong/pong.h"
 #import "raylib.h"
 
-typedef enum { MENU = 0, PONG, SNAKE, TETRIS } GameScreen;
-
-GameScreen current_game = MENU;
-
 #define ITEMHEIGHT  80
 #define ICONSIZE    12
 #define ICONMARGIN  (ITEMHEIGHT - ICONSIZE) / 2
@@ -16,6 +12,7 @@ GameScreen current_game = MENU;
 #define GAMECOUNT   3
 
 int select_position = 0;
+GameScreen current_game = MENU;
 
 void
 run_menu(void)
@@ -29,8 +26,7 @@ run_menu(void)
         handle_ingame_input();
         switch (current_game)
         {
-        case MENU: render_menu(); break;
-        case PONG: run_pong(); break;
+        case PONG: pong_run_game(); break;
         default:   current_game = MENU; render_menu();
         }
     }
@@ -84,7 +80,10 @@ change_game(void)
     int shifted = select_position + 1;
     switch (shifted)
     {
-    case PONG:   current_game = PONG; break;
+    case PONG:
+        current_game = PONG;
+        pong_new_game();
+        break;
     case SNAKE:  current_game = SNAKE; break;
     case TETRIS: current_game = TETRIS; break;
     }

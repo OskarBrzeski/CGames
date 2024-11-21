@@ -1,6 +1,7 @@
 #include "pong.h"
 
 #include "raylib.h"
+#include "raymath.h"
 
 #include <stdio.h>
 
@@ -8,20 +9,26 @@
 #define PADDLE_WIDTH  10
 #define PADDLE_MARGIN 20
 #define PADDLE_SPEED  270
-#define BALL_SPEED    360
 #define BALL_RAIDUS   8
+#define BALL_SPEED    360
 
-GameState global = {
-    .player_pos = 0,
-    .opponent_pos = 0,
-    .ball_pos = {        .x = 50,         .y = 50},
-    .ball_vel = {.x = BALL_SPEED, .y = BALL_SPEED},
-    .player_score = 0,
-    .opponent_score = 0
-};
+PongGameState global = {};
 
 void
-run_pong(void)
+pong_new_game(void)
+{
+    global = (PongGameState) {
+        .player_pos = 0,
+        .opponent_pos = 0,
+        .ball_pos = {        .x = 50,         .y = 50},
+        .ball_vel = {.x = BALL_SPEED, .y = BALL_SPEED},
+        .player_score = 0,
+        .opponent_score = 0
+    };
+}
+
+void
+pong_run_game()
 {
     int window_width = GetRenderWidth();
     int window_height = GetRenderHeight();
@@ -64,7 +71,7 @@ move_opponent(float dt)
 }
 
 Rectangle
-player_paddle_to_rec(void)
+player_paddle_to_rec()
 {
     return (Rectangle) {.x = PADDLE_MARGIN,
                         .y = global.player_pos,
@@ -101,8 +108,8 @@ handle_user_input(int window_height, float dt)
 void
 update_ball_pos(int window_width, int window_height, float dt)
 {
-    global.ball_pos.x += global.ball_vel.x * dt;
-    global.ball_pos.y += global.ball_vel.y * dt;
+    global.ball_pos =
+        Vector2Add(global.ball_pos, Vector2Scale(global.ball_vel, dt));
 
     int hit_walls = global.ball_pos.y < BALL_RAIDUS ||
                     global.ball_pos.y > window_height - BALL_RAIDUS;
@@ -125,7 +132,7 @@ update_ball_pos(int window_width, int window_height, float dt)
 }
 
 void
-ball_hit_player(void)
+ball_hit_player()
 {
     Rectangle player = player_paddle_to_rec();
     if (CheckCollisionCircleRec(global.ball_pos, BALL_RAIDUS, player))

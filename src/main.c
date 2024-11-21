@@ -1,24 +1,25 @@
+#include "main.h"
+
 #include "menu/menu.h"
 #include "raylib.h"
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
 
-void
-handle_FPS_toggle(void);
-
 int
-main()
+main(void)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Starting Example");
     SetTargetFPS(60);
     SetExitKey(KEY_F4);
 
+    GameState game = {};
+
     while (!WindowShouldClose())
     {
         BeginDrawing();
-
         ClearBackground(BLACK);
+
         run_menu();
         handle_FPS_toggle();
 
@@ -34,7 +35,7 @@ int FPS_target_index = 0;
 void
 handle_FPS_toggle(void)
 {
-    int FPS_targets[] = {60, 90, 120, 144, 240};
+    int FPS_targets[] = {60, 144};
     int FPS_target_length = sizeof(FPS_targets) / sizeof(FPS_targets[0]);
     int key;
     do {
