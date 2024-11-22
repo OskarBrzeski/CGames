@@ -14,13 +14,13 @@ typedef struct {
 
 void pong_new_game(void);
 void pong_run_game();
-void render_game(int window_width, int window_height);
-void move_opponent(float dt);
-Rectangle player_paddle_to_rec();
-Rectangle opponent_paddle_to_rec(int window_width);
-void handle_user_input(int window_height, float dt);
-void update_ball_pos(int window_width, int window_height, float dt);
-void ball_hit_player();
-void ball_hit_opponent(int window_width);
+void pong_render_game(int window_width, int window_height);
+void pong_move_opponent(float dt);
+Rectangle pong_player_paddle_to_rec();
+Rectangle pong_opponent_paddle_to_rec(int window_width);
+void pong_handle_user_input(int window_height, float dt);
+void pong_update_ball_pos(int window_width, int window_height, float dt);
+void pong_ball_hit_player();
+void pong_ball_hit_opponent(int window_width);
 
 #endif

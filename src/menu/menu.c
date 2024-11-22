@@ -1,6 +1,7 @@
 #import "menu.h"
 
 #import "../pong/pong.h"
+#import "../snake/snake.h"
 #import "raylib.h"
 
 #define ITEMHEIGHT  80
@@ -26,8 +27,9 @@ run_menu(void)
         handle_ingame_input();
         switch (current_game)
         {
-        case PONG: pong_run_game(); break;
-        default:   current_game = MENU; render_menu();
+        case PONG:  pong_run_game(); break;
+        case SNAKE: snake_run_game(); break;
+        default:    current_game = MENU; render_menu();
         }
     }
 }
@@ -84,7 +86,10 @@ change_game(void)
         current_game = PONG;
         pong_new_game();
         break;
-    case SNAKE:  current_game = SNAKE; break;
+    case SNAKE:
+        current_game = SNAKE;
+        snake_new_game();
+        break;
     case TETRIS: current_game = TETRIS; break;
     }
 }

@@ -13,8 +13,6 @@ main(void)
     SetTargetFPS(60);
     SetExitKey(KEY_F4);
 
-    GameState game = {};
-
     while (!WindowShouldClose())
     {
         BeginDrawing();

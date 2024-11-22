@@ -34,18 +34,18 @@ pong_run_game()
     int window_height = GetRenderHeight();
     float dt = GetFrameTime();
 
-    handle_user_input(window_height, dt);
-    move_opponent(dt);
-    update_ball_pos(window_width, window_height, dt);
+    pong_handle_user_input(window_height, dt);
+    pong_move_opponent(dt);
+    pong_update_ball_pos(window_width, window_height, dt);
 
-    render_game(window_width, window_height);
+    pong_render_game(window_width, window_height);
 }
 
 void
-render_game(int window_width, int window_height)
+pong_render_game(int window_width, int window_height)
 {
-    DrawRectangleRec(player_paddle_to_rec(), WHITE);
-    DrawRectangleRec(opponent_paddle_to_rec(window_width), WHITE);
+    DrawRectangleRec(pong_player_paddle_to_rec(), WHITE);
+    DrawRectangleRec(pong_opponent_paddle_to_rec(window_width), WHITE);
     DrawCircle(global.ball_pos.x, global.ball_pos.y, BALL_RAIDUS, WHITE);
     DrawFPS(5, 5);
 
@@ -59,7 +59,7 @@ render_game(int window_width, int window_height)
 }
 
 void
-move_opponent(float dt)
+pong_move_opponent(float dt)
 {
     if (global.ball_pos.y < global.opponent_pos + PADDLE_HEIGHT / 2.0)
     {
@@ -71,7 +71,7 @@ move_opponent(float dt)
 }
 
 Rectangle
-player_paddle_to_rec()
+pong_player_paddle_to_rec()
 {
     return (Rectangle) {.x = PADDLE_MARGIN,
                         .y = global.player_pos,
@@ -80,7 +80,7 @@ player_paddle_to_rec()
 }
 
 Rectangle
-opponent_paddle_to_rec(int window_width)
+pong_opponent_paddle_to_rec(int window_width)
 {
     return (Rectangle) {.x = window_width - PADDLE_WIDTH - PADDLE_MARGIN,
                         .y = global.opponent_pos,
@@ -89,7 +89,7 @@ opponent_paddle_to_rec(int window_width)
 }
 
 void
-handle_user_input(int window_height, float dt)
+pong_handle_user_input(int window_height, float dt)
 {
     if (IsKeyDown(KEY_DOWN))
     {
@@ -106,7 +106,7 @@ handle_user_input(int window_height, float dt)
 }
 
 void
-update_ball_pos(int window_width, int window_height, float dt)
+pong_update_ball_pos(int window_width, int window_height, float dt)
 {
     global.ball_pos =
         Vector2Add(global.ball_pos, Vector2Scale(global.ball_vel, dt));
@@ -115,8 +115,8 @@ update_ball_pos(int window_width, int window_height, float dt)
                     global.ball_pos.y > window_height - BALL_RAIDUS;
     if (hit_walls) { global.ball_vel.y = -global.ball_vel.y; }
 
-    ball_hit_player();
-    ball_hit_opponent(window_width);
+    pong_ball_hit_player();
+    pong_ball_hit_opponent(window_width);
 
     if (global.ball_pos.x < 0)
     {
@@ -132,9 +132,9 @@ update_ball_pos(int window_width, int window_height, float dt)
 }
 
 void
-ball_hit_player()
+pong_ball_hit_player()
 {
-    Rectangle player = player_paddle_to_rec();
+    Rectangle player = pong_player_paddle_to_rec();
     if (CheckCollisionCircleRec(global.ball_pos, BALL_RAIDUS, player))
     {
         global.ball_vel.x = -global.ball_vel.x;
@@ -148,9 +148,9 @@ ball_hit_player()
 }
 
 void
-ball_hit_opponent(int window_width)
+pong_ball_hit_opponent(int window_width)
 {
-    Rectangle opponent = opponent_paddle_to_rec(window_width);
+    Rectangle opponent = pong_opponent_paddle_to_rec(window_width);
     if (CheckCollisionCircleRec(global.ball_pos, BALL_RAIDUS, opponent))
     {
         global.ball_vel.x = -global.ball_vel.x;
