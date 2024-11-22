@@ -2,18 +2,22 @@
 
 #include "raylib.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 SnakeGameState state = {};
 
 void
 snake_new_game(void)
 {
     state = (SnakeGameState) {
-        .snake_body = {{.x = 0, .y = 0}, {.x = 1, .y = 0}, {.x = 2, .y = 0}},
+        .snake_body = {{.x = 2, .y = 0}, {.x = 1, .y = 0}, {.x = 0, .y = 0}},
         .snake_length = 3,
         .fruit = {.x = 5, .y = 5},
         .direction = RIGHT,
         .desired = RIGHT,
-        .time = 0.0
+        .time = 0.0,
+        .game_over = PLAYING
     };
 }
 
@@ -23,7 +27,7 @@ snake_run_game(void)
     float dt = GetFrameTime();
     state.time += dt * 1000;
 
-    if (state.time > MSPERTICK)
+    if (!state.game_over && state.time > MSPERTICK)
     {
         state.direction = state.desired;
         snake_update_pos();
@@ -43,6 +47,8 @@ snake_render_game(void)
         snake_render_cell(state.snake_body[i], WHITE);
     }
     snake_render_cell(state.fruit, RED);
+
+    if (state.game_over) { snake_render_game_over(); }
 }
 
 int
@@ -94,33 +100,65 @@ snake_render_cell(GridCell cell, Color color)
 }
 
 void
+snake_render_game_over()
+{
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
+                  (Color) {0, 0, 0, 150});
+
+    if (state.game_over == WIN)
+    {
+        DrawText("Congratulations, you win!", 100, 100, 30, WHITE);
+    } else
+    {
+        char length[4];
+        snprintf(length, 4, "%d", state.snake_length);
+        DrawText(length, 100, 100, 30, WHITE);
+    }
+
+    DrawText("Press Enter to Try Again", 100, 200, 30, WHITE);
+}
+
+void
 snake_update_pos(void)
 {
-    GridCell head = state.snake_body[state.snake_length - 1];
+    GridCell head = state.snake_body[0];
+    GridCell tail = state.snake_body[state.snake_length - 1];
 
-    for (int i = 0; i < state.snake_length - 1; i++)
+    for (int i = state.snake_length - 1; i > 0; i--)
     {
-        state.snake_body[i] = state.snake_body[i + 1];
+        state.snake_body[i] = state.snake_body[i - 1];
     }
 
     switch (state.direction)
     {
     case UP:
-        state.snake_body[state.snake_length - 1] =
-            (GridCell) {.x = head.x, .y = head.y - 1};
+        state.snake_body[0] = (GridCell) {.x = head.x, .y = head.y - 1};
         break;
     case LEFT:
-        state.snake_body[state.snake_length - 1] =
-            (GridCell) {.x = head.x - 1, .y = head.y};
+        state.snake_body[0] = (GridCell) {.x = head.x - 1, .y = head.y};
         break;
     case DOWN:
-        state.snake_body[state.snake_length - 1] =
-            (GridCell) {.x = head.x, .y = head.y + 1};
+        state.snake_body[0] = (GridCell) {.x = head.x, .y = head.y + 1};
         break;
     case RIGHT:
-        state.snake_body[state.snake_length - 1] =
-            (GridCell) {.x = head.x + 1, .y = head.y};
+        state.snake_body[0] = (GridCell) {.x = head.x + 1, .y = head.y};
         break;
+    }
+
+    state.game_over = snake_is_game_over();
+
+    if (snake_cell_equal(state.snake_body[0], state.fruit))
+    {
+        state.snake_body[state.snake_length] = tail;
+        ++state.snake_length;
+
+        if (state.snake_length == ROWS * COLUMNS)
+        {
+            state.game_over = WIN;
+            return;
+        }
+
+        snake_new_fruit();
     }
 }
 
@@ -131,20 +169,80 @@ snake_handle_input(void)
     do {
         key = GetKeyPressed();
 
-        switch (key)
+        if (state.game_over)
         {
-        case KEY_UP:
-            if (state.direction != DOWN) state.desired = UP;
-            break;
-        case KEY_LEFT:
-            if (state.direction != RIGHT) state.desired = LEFT;
-            break;
-        case KEY_DOWN:
-            if (state.direction != UP) state.desired = DOWN;
-            break;
-        case KEY_RIGHT:
-            if (state.direction != LEFT) state.desired = RIGHT;
-            break;
+            if (key == KEY_ENTER) { snake_new_game(); }
+        } else
+        {
+            switch (key)
+            {
+            case KEY_UP:
+                if (state.direction != DOWN) state.desired = UP;
+                break;
+            case KEY_LEFT:
+                if (state.direction != RIGHT) state.desired = LEFT;
+                break;
+            case KEY_DOWN:
+                if (state.direction != UP) state.desired = DOWN;
+                break;
+            case KEY_RIGHT:
+                if (state.direction != LEFT) state.desired = RIGHT;
+                break;
+            }
         }
     } while (key != 0);
+}
+
+int
+snake_cell_equal(GridCell c1, GridCell c2)
+{
+    return c1.x == c2.x && c1.y == c2.y;
+}
+
+void
+snake_new_fruit(void)
+{
+    int position = GetRandomValue(0, ROWS * COLUMNS - state.snake_length);
+
+    int area[ROWS * COLUMNS] = {0};
+    snake_grid_arr(area);
+
+    for (int i = 0, empty = 0; i < ROWS * COLUMNS; i++)
+    {
+        if (area[i] == 0) ++empty;
+
+        if (empty == position)
+        {
+            state.fruit = (GridCell) {.x = i % COLUMNS, .y = i / COLUMNS};
+            break;
+        }
+    }
+}
+
+void
+snake_grid_arr(int* grid)
+{
+    for (int i = 0; i < state.snake_length; i++)
+    {
+        int pos = state.snake_body[i].x + COLUMNS * state.snake_body[i].y;
+        grid[pos] = 1;
+    }
+}
+
+PlayStatus
+snake_is_game_over(void)
+{
+    GridCell head = state.snake_body[0];
+
+    if (head.x < 0 || head.x >= COLUMNS || head.y < 0 || head.y >= ROWS)
+    {
+        return LOSE;
+    }
+
+    for (int i = 1; i < state.snake_length; i++)
+    {
+        if (snake_cell_equal(head, state.snake_body[i])) { return LOSE; }
+    }
+
+    return PLAYING;
 }
