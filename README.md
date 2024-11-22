@@ -7,12 +7,12 @@ This is a collection of basic games written in C and using Raylib.
 I have completed the following games.
 
 - Pong
+- Snake
 
 ## Planned Games
 
 I plan to create the following games.
 
-- Snake
 - Tetris
 
 This list will expand as I develop more of them.
