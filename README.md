@@ -1,6 +1,8 @@
 # CGames
 
-This is a collection of basic games written in C and using Raylib.
+This is a collection of basic games written in C and using
+[Raylib](https://github.com/raysan5/raylib). I am developing this as
+practice in using the C programming language.
 
 ## Completed Games
 
