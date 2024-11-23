@@ -3,7 +3,6 @@
 #include "raylib.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 
 SnakeGameState state = {};
 
@@ -79,17 +78,17 @@ snake_render_grid(void)
     for (int i = 0; i <= COLUMNS; i++)
     {
         DrawRectangle(margin + i * (cell_size + GRIDWIDTH), margin, GRIDWIDTH,
-                      screen_height - 2 * margin, GREEN);
+                      screen_height - 2 * margin, GRAY);
     }
     for (int i = 0; i <= ROWS; i++)
     {
         DrawRectangle(margin, margin + i * (cell_size + GRIDWIDTH),
-                      screen_width - 2 * margin, GRIDWIDTH, GREEN);
+                      screen_width - 2 * margin, GRIDWIDTH, GRAY);
     }
 }
 
 void
-snake_render_cell(GridCell cell, Color color)
+snake_render_cell(SnakeGridCell cell, Color color)
 {
     int cell_size = snake_cell_size();
     int margin = snake_margin();
@@ -121,8 +120,8 @@ snake_render_game_over()
 void
 snake_update_pos(void)
 {
-    GridCell head = state.snake_body[0];
-    GridCell tail = state.snake_body[state.snake_length - 1];
+    SnakeGridCell head = state.snake_body[0];
+    SnakeGridCell tail = state.snake_body[state.snake_length - 1];
 
     for (int i = state.snake_length - 1; i > 0; i--)
     {
@@ -132,16 +131,16 @@ snake_update_pos(void)
     switch (state.direction)
     {
     case UP:
-        state.snake_body[0] = (GridCell) {.x = head.x, .y = head.y - 1};
+        state.snake_body[0] = (SnakeGridCell) {.x = head.x, .y = head.y - 1};
         break;
     case LEFT:
-        state.snake_body[0] = (GridCell) {.x = head.x - 1, .y = head.y};
+        state.snake_body[0] = (SnakeGridCell) {.x = head.x - 1, .y = head.y};
         break;
     case DOWN:
-        state.snake_body[0] = (GridCell) {.x = head.x, .y = head.y + 1};
+        state.snake_body[0] = (SnakeGridCell) {.x = head.x, .y = head.y + 1};
         break;
     case RIGHT:
-        state.snake_body[0] = (GridCell) {.x = head.x + 1, .y = head.y};
+        state.snake_body[0] = (SnakeGridCell) {.x = head.x + 1, .y = head.y};
         break;
     }
 
@@ -194,7 +193,7 @@ snake_handle_input(void)
 }
 
 int
-snake_cell_equal(GridCell c1, GridCell c2)
+snake_cell_equal(SnakeGridCell c1, SnakeGridCell c2)
 {
     return c1.x == c2.x && c1.y == c2.y;
 }
@@ -213,7 +212,7 @@ snake_new_fruit(void)
 
         if (empty == position)
         {
-            state.fruit = (GridCell) {.x = i % COLUMNS, .y = i / COLUMNS};
+            state.fruit = (SnakeGridCell) {.x = i % COLUMNS, .y = i / COLUMNS};
             break;
         }
     }
@@ -229,10 +228,10 @@ snake_grid_arr(int* grid)
     }
 }
 
-PlayStatus
+SnakePlayStatus
 snake_is_game_over(void)
 {
-    GridCell head = state.snake_body[0];
+    SnakeGridCell head = state.snake_body[0];
 
     if (head.x < 0 || head.x >= COLUMNS || head.y < 0 || head.y >= ROWS)
     {

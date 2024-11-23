@@ -13,27 +13,27 @@ typedef enum {
     LEFT,
     DOWN,
     RIGHT,
-} Direction;
+} SnakeDirection;
 
 typedef enum {
     PLAYING,
     LOSE,
     WIN,
-} PlayStatus;
+} SnakePlayStatus;
 
 typedef struct {
     int x;
     int y;
-} GridCell;
+} SnakeGridCell;
 
 typedef struct {
-    GridCell snake_body[ROWS * COLUMNS];
+    SnakeGridCell snake_body[ROWS * COLUMNS];
     int snake_length;
-    GridCell fruit;
-    Direction direction;
-    Direction desired;
+    SnakeGridCell fruit;
+    SnakeDirection direction;
+    SnakeDirection desired;
     float time;
-    PlayStatus game_over;
+    SnakePlayStatus game_over;
 } SnakeGameState;
 
 void snake_new_game(void);
@@ -42,13 +42,13 @@ void snake_render_game(void);
 int snake_cell_size(void);
 int snake_margin(void);
 void snake_render_grid(void);
-void snake_render_cell(GridCell cell, Color color);
+void snake_render_cell(SnakeGridCell cell, Color color);
 void snake_render_game_over(void);
 void snake_update_pos(void);
 void snake_handle_input(void);
-int snake_cell_equal(GridCell c1, GridCell c2);
+int snake_cell_equal(SnakeGridCell c1, SnakeGridCell c2);
 void snake_new_fruit(void);
 void snake_grid_arr(int* grid);
-PlayStatus snake_is_game_over(void);
+SnakePlayStatus snake_is_game_over(void);
 
 #endif
