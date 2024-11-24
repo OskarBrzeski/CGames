@@ -43,5 +43,6 @@ handle_FPS_toggle(void)
             FPS_target_index = (FPS_target_index + 1) % FPS_target_length;
             SetTargetFPS(FPS_targets[FPS_target_index]);
         }
-    } while (key != 0);
+    }
+    while (key != 0);
 }

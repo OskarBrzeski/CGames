@@ -13,6 +13,9 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterControlStatement: Always
   AfterFunction: true
+  BeforeElse: true
+  BeforeWhile: true
+  SplitEmptyFunction: true
 BreakAfterReturnType: All
 BreakBeforeTernaryOperators: true
 IncludeBlocks: Regroup

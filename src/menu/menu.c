@@ -22,7 +22,8 @@ run_menu(void)
     {
         handle_input();
         render_menu();
-    } else
+    }
+    else
     {
         handle_ingame_input();
         switch (current_game)
@@ -73,7 +74,8 @@ handle_input(void)
             break;
         case KEY_ENTER: change_game(); break;
         }
-    } while (key != 0);
+    }
+    while (key != 0);
 }
 
 void

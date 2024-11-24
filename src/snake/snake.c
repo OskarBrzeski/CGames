@@ -107,7 +107,8 @@ snake_render_game_over()
     if (state.game_over == WIN)
     {
         DrawText("Congratulations, you win!", 100, 100, 30, WHITE);
-    } else
+    }
+    else
     {
         char length[4];
         snprintf(length, 4, "%d", state.snake_length);
@@ -171,7 +172,8 @@ snake_handle_input(void)
         if (state.game_over)
         {
             if (key == KEY_ENTER) { snake_new_game(); }
-        } else
+        }
+        else
         {
             switch (key)
             {
@@ -189,7 +191,8 @@ snake_handle_input(void)
                 break;
             }
         }
-    } while (key != 0);
+    }
+    while (key != 0);
 }
 
 int
