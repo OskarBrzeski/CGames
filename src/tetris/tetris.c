@@ -232,6 +232,7 @@ tetris_run_game(void)
 {
     tetris_piece_batch();
     tetris_handle_input();
+    tetris_clear_line();
     tetris_render_game();
 }
 
@@ -300,6 +301,34 @@ tetris_next_piece(void)
 {
     TetrisPieceType type = tetris_queue_pop(&(tetris.next_pieces));
     tetris.current_piece = tetris_piece(type);
+}
+
+void
+tetris_clear_line(void)
+{
+    for (int y = 0; y < 20; y++)
+    {
+        int count = 0;
+        for (int x = 0; x < 10; x++)
+        {
+            if (tetris.grid[y][x] > 0) ++count;
+        }
+        if (count == 10) { tetris_shift_lines(y); }
+    }
+}
+
+void
+tetris_shift_lines(int8_t line)
+{
+    for (int y = line; y > 0; y--)
+    {
+        for (int x = 0; x < 10; x++)
+        {
+            tetris.grid[y][x] = tetris.grid[y - 1][x];
+        }
+    }
+
+    for (int x = 0; x < 10; x++) { tetris.grid[0][x] = 0; }
 }
 
 void

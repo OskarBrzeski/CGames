@@ -56,6 +56,8 @@ void tetris_run_game(void);
 
 void tetris_place_piece(void);
 bool tetris_valid_position(void);
+void tetris_clear_line(void);
+void tetris_shift_lines(int8_t line);
 
 typedef struct {
     int16_t window_width;
