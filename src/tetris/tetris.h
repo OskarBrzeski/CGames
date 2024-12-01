@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 typedef enum {
-    I,
+    I = 1,
     O,
     T,
     S,
@@ -47,13 +47,15 @@ typedef struct {
     TetrisPieceType grid[20][10];
 } TetrisState;
 
+void tetris_piece_batch(void);
+void tetris_next_piece(void);
 void tetris_new_game(void);
+TetrisPiece tetris_piece(TetrisPieceType type);
 
 void tetris_run_game(void);
 
-TetrisPiece tetris_piece(TetrisPieceType type);
-void tetris_piece_batch(void);
-void tetris_next_piece(void);
+void tetris_place_piece(void);
+bool tetris_valid_position(void);
 
 typedef struct {
     int16_t window_width;
@@ -69,6 +71,7 @@ void tetris_render_grid(void);
 void tetris_render_grid_rows(TetrisGridStuff* grid);
 void tetris_render_grid_columns(TetrisGridStuff* grid);
 void tetris_render_pieces(TetrisGridStuff* grid);
+void tetris_render_tiles(TetrisGridStuff* grid);
 Color tetris_colour(TetrisPieceType type);
 void tetris_render_text(TetrisGridStuff* grid);
 

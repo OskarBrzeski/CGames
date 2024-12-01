@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 TetrisState tetris = {};
 
@@ -48,14 +49,6 @@ tetris_new_game(void)
 
     tetris_piece_batch();
     tetris_next_piece();
-}
-
-void
-tetris_run_game(void)
-{
-    tetris_piece_batch();
-    tetris_handle_input();
-    tetris_render_game();
 }
 
 TetrisPiece
@@ -235,6 +228,53 @@ tetris_piece(TetrisPieceType type)
 }
 
 void
+tetris_run_game(void)
+{
+    tetris_piece_batch();
+    tetris_handle_input();
+    tetris_render_game();
+}
+
+void
+tetris_place_piece(void)
+{
+    while (tetris_valid_position()) { ++tetris.current_piece.position.y; }
+    --tetris.current_piece.position.y;
+
+    TetrisTile* tiles =
+        tetris.current_piece.tiles[tetris.current_piece.rotation];
+
+    for (int i = 0; i < 4; i++)
+    {
+        int x = tetris.current_piece.position.x + tiles[i].x;
+        int y = tetris.current_piece.position.y + tiles[i].y;
+        tetris.grid[y][x] = tetris.current_piece.type;
+    }
+
+    tetris_next_piece();
+}
+
+bool
+tetris_valid_position(void)
+{
+    int curr_x = tetris.current_piece.position.x;
+    int curr_y = tetris.current_piece.position.y;
+    int rotation = tetris.current_piece.rotation;
+
+    for (int i = 0; i < 4; i++)
+    {
+        int x = curr_x + tetris.current_piece.tiles[rotation][i].x;
+        int y = curr_y + tetris.current_piece.tiles[rotation][i].y;
+
+        if (x < 0 || x >= 10) return false;
+        if (y >= 20) return false;
+        if (y < 0) continue;
+        if (tetris.grid[y][x] != 0) return false;
+    }
+    return true;
+}
+
+void
 tetris_piece_batch(void)
 {
     if (tetris_queue_length(&(tetris.next_pieces)) < 8)
@@ -285,6 +325,7 @@ tetris_render_grid(void)
     tetris_render_grid_rows(&grid);
     tetris_render_grid_columns(&grid);
     tetris_render_pieces(&grid);
+    tetris_render_tiles(&grid);
 }
 
 void
@@ -331,6 +372,23 @@ tetris_render_pieces(TetrisGridStuff* grid)
     }
 }
 
+void
+tetris_render_tiles(TetrisGridStuff* grid)
+{
+    for (int i = 0; i < 20; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            int x = grid->margin_x + grid->grid_border * (j + 1) +
+                    grid->cell_size * j;
+            int y = grid->margin_y + grid->grid_border * (i + 1) +
+                    grid->cell_size * i;
+            DrawRectangle(x, y, grid->cell_size, grid->cell_size,
+                          tetris_colour(tetris.grid[i][j]));
+        }
+    }
+}
+
 Color
 tetris_colour(TetrisPieceType type)
 {
@@ -360,18 +418,37 @@ tetris_handle_input(void)
 
         switch (key)
         {
-        case KEY_ENTER: tetris_next_piece(); break;
         case KEY_X:
             tetris.current_piece.rotation =
                 (tetris.current_piece.rotation + 1) % 4;
+            if (!tetris_valid_position())
+            {
+                tetris.current_piece.rotation =
+                    ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
+            }
             break;
         case KEY_Z:
             tetris.current_piece.rotation =
                 ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
+            if (!tetris_valid_position())
+            {
+                tetris.current_piece.rotation =
+                    (tetris.current_piece.rotation + 1) % 4;
+            }
             break;
-        case KEY_LEFT:  --tetris.current_piece.position.x; break;
-        case KEY_RIGHT: ++tetris.current_piece.position.x; break;
-        case KEY_DOWN:  ++tetris.current_piece.position.y; break;
+        case KEY_LEFT:
+            --tetris.current_piece.position.x;
+            if (!tetris_valid_position()) ++tetris.current_piece.position.x;
+            break;
+        case KEY_RIGHT:
+            ++tetris.current_piece.position.x;
+            if (!tetris_valid_position()) --tetris.current_piece.position.x;
+            break;
+        case KEY_DOWN:
+            ++tetris.current_piece.position.y;
+            if (!tetris_valid_position()) --tetris.current_piece.position.y;
+            break;
+        case KEY_UP: tetris_place_piece(); break;
         }
     }
     while (key != 0);
