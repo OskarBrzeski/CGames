@@ -8,20 +8,52 @@
 TetrisState tetris = {};
 
 void
+tetris_queue_append(TetrisQueue* queue, TetrisPieceType type)
+{
+    queue->values[queue->head] = type;
+    queue->head = (queue->head + 1) % 14;
+}
+
+TetrisPieceType
+tetris_queue_pop(TetrisQueue* queue)
+{
+    TetrisPieceType value = tetris_queue_peek(queue, 0);
+    queue->tail = (queue->tail + 1) % 14;
+    return value;
+}
+
+TetrisPieceType
+tetris_queue_peek(TetrisQueue* queue, int8_t offset)
+{
+    return queue->values[(queue->tail + offset) % 14];
+}
+
+int8_t
+tetris_queue_length(TetrisQueue* queue)
+{
+    return ((queue->head - queue->tail) % 14 + 14) % 14;
+}
+
+void
 tetris_new_game(void)
 {
     tetris = (TetrisState) {
         .lines_cleared = 0,
         .current_index = 0,
-        .current_piece = tetris_piece(T),
+        .time = 0.0,
+        .current_piece = {},
         .grid = {},
-        .next_pieces = {},
+        .next_pieces = {.head = 0, .tail = 0, .values = {}},
     };
+
+    tetris_piece_batch();
+    tetris_next_piece();
 }
 
 void
 tetris_run_game(void)
 {
+    tetris_piece_batch();
     tetris_handle_input();
     tetris_render_game();
 }
@@ -33,6 +65,8 @@ tetris_piece(TetrisPieceType type)
     {
     case I:
         return (TetrisPiece) {
+            .rotation = 0,
+            .type = I,
             .position = {.x = 3, .y = -2},
             .tiles = {
                          {{.x = 0, .y = 1},
@@ -55,6 +89,8 @@ tetris_piece(TetrisPieceType type)
         };
     case O:
         return (TetrisPiece) {
+            .rotation = 0,
+            .type = O,
             .position = {.x = 3, .y = -3},
             .tiles = {
                          {{.x = 1, .y = 1},
@@ -77,6 +113,8 @@ tetris_piece(TetrisPieceType type)
         };
     case T:
         return (TetrisPiece) {
+            .rotation = 0,
+            .type = T,
             .position = {.x = 3, .y = -2},
             .tiles = {
                          {{.x = 1, .y = 0},
@@ -99,6 +137,8 @@ tetris_piece(TetrisPieceType type)
         };
     case S:
         return (TetrisPiece) {
+            .rotation = 0,
+            .type = S,
             .position = {.x = 3, .y = -2},
             .tiles = {
                          {{.x = 1, .y = 0},
@@ -121,6 +161,8 @@ tetris_piece(TetrisPieceType type)
         };
     case Z:
         return (TetrisPiece) {
+            .rotation = 0,
+            .type = Z,
             .position = {.x = 3, .y = -2},
             .tiles = {
                          {{.x = 0, .y = 0},
@@ -143,12 +185,14 @@ tetris_piece(TetrisPieceType type)
         };
     case L:
         return (TetrisPiece) {
+            .rotation = 0,
+            .type = L,
             .position = {.x = 3, .y = -2},
             .tiles = {
                          {{.x = 2, .y = 0},
                  {.x = 0, .y = 1},
                  {.x = 1, .y = 1},
-                 {.x = 1, .y = 2}},
+                 {.x = 2, .y = 1}},
                          {{.x = 1, .y = 0},
                  {.x = 1, .y = 1},
                  {.x = 1, .y = 2},
@@ -165,6 +209,8 @@ tetris_piece(TetrisPieceType type)
         };
     case J:
         return (TetrisPiece) {
+            .rotation = 0,
+            .type = J,
             .position = {.x = 3, .y = -2},
             .tiles = {
                          {{.x = 0, .y = 0},
@@ -189,6 +235,34 @@ tetris_piece(TetrisPieceType type)
 }
 
 void
+tetris_piece_batch(void)
+{
+    if (tetris_queue_length(&(tetris.next_pieces)) < 8)
+    {
+        TetrisPieceType values[7] = {I, O, T, S, Z, L, J};
+        int last_index = 6;
+        for (int i = 0; i < 7; i++)
+        {
+            int num = GetRandomValue(0, last_index);
+            tetris_queue_append(&(tetris.next_pieces), values[num]);
+
+            for (int j = num; j < last_index; j++)
+            {
+                values[j] = values[j + 1];
+            }
+            --last_index;
+        }
+    }
+}
+
+void
+tetris_next_piece(void)
+{
+    TetrisPieceType type = tetris_queue_pop(&(tetris.next_pieces));
+    tetris.current_piece = tetris_piece(type);
+}
+
+void
 tetris_render_game(void)
 {
     tetris_render_grid();
@@ -210,7 +284,7 @@ tetris_render_grid(void)
 
     tetris_render_grid_rows(&grid);
     tetris_render_grid_columns(&grid);
-    tetris_render_pieces(&grid, T);
+    tetris_render_pieces(&grid);
 }
 
 void
@@ -238,7 +312,7 @@ tetris_render_grid_columns(TetrisGridStuff* grid)
 }
 
 void
-tetris_render_pieces(TetrisGridStuff* grid, TetrisPieceType type)
+tetris_render_pieces(TetrisGridStuff* grid)
 {
     TetrisPiece* piece = &tetris.current_piece;
 
@@ -253,7 +327,7 @@ tetris_render_pieces(TetrisGridStuff* grid, TetrisPieceType type)
             offset * (piece->position.y + piece->tiles[piece->rotation][i].y);
 
         DrawRectangle(x, y, grid->cell_size, grid->cell_size,
-                      tetris_colour(type));
+                      tetris_colour(tetris.current_piece.type));
     }
 }
 
@@ -286,6 +360,7 @@ tetris_handle_input(void)
 
         switch (key)
         {
+        case KEY_ENTER: tetris_next_piece(); break;
         case KEY_X:
             tetris.current_piece.rotation =
                 (tetris.current_piece.rotation + 1) % 4;
@@ -296,7 +371,7 @@ tetris_handle_input(void)
             break;
         case KEY_LEFT:  --tetris.current_piece.position.x; break;
         case KEY_RIGHT: ++tetris.current_piece.position.x; break;
-        case KEY_DOWN:  ++tetris.current_piece.position.y;
+        case KEY_DOWN:  ++tetris.current_piece.position.y; break;
         }
     }
     while (key != 0);

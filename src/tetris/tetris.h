@@ -15,10 +15,16 @@ typedef enum {
     J,
 } TetrisPieceType;
 
-typedef enum {
-    THREE,
-    FOUR,
-} TetrisSize;
+typedef struct {
+    int8_t head;
+    int8_t tail;
+    TetrisPieceType values[14];
+} TetrisQueue;
+
+void tetris_queue_append(TetrisQueue* queue, TetrisPieceType type);
+TetrisPieceType tetris_queue_pop(TetrisQueue* queue);
+TetrisPieceType tetris_queue_peek(TetrisQueue* queue, int8_t offset);
+int8_t tetris_queue_length(TetrisQueue* queue);
 
 typedef struct {
     int8_t x;
@@ -27,6 +33,7 @@ typedef struct {
 
 typedef struct {
     int8_t rotation;
+    TetrisPieceType type;
     TetrisTile position;
     TetrisTile tiles[4][4];
 } TetrisPiece;
@@ -34,10 +41,19 @@ typedef struct {
 typedef struct {
     int16_t lines_cleared;
     int8_t current_index;
+    float time;
     TetrisPiece current_piece;
+    TetrisQueue next_pieces;
     TetrisPieceType grid[20][10];
-    TetrisPieceType next_pieces[14];
 } TetrisState;
+
+void tetris_new_game(void);
+
+void tetris_run_game(void);
+
+TetrisPiece tetris_piece(TetrisPieceType type);
+void tetris_piece_batch(void);
+void tetris_next_piece(void);
 
 typedef struct {
     int16_t window_width;
@@ -48,17 +64,11 @@ typedef struct {
     int16_t margin_y;
 } TetrisGridStuff;
 
-void tetris_new_game(void);
-void tetris_run_game(void);
-
-TetrisPiece tetris_piece(TetrisPieceType type);
-
 void tetris_render_game(void);
-
 void tetris_render_grid(void);
 void tetris_render_grid_rows(TetrisGridStuff* grid);
 void tetris_render_grid_columns(TetrisGridStuff* grid);
-void tetris_render_pieces(TetrisGridStuff* grid, TetrisPieceType type);
+void tetris_render_pieces(TetrisGridStuff* grid);
 Color tetris_colour(TetrisPieceType type);
 void tetris_render_text(TetrisGridStuff* grid);
 
