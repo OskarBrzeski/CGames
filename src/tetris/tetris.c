@@ -4,7 +4,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 
 TetrisState tetris = {};
 
@@ -44,6 +43,7 @@ tetris_new_game(void)
         .time = 0.0,
         .current_piece = {},
         .grid = {},
+        .hold = 0,
         .next_pieces = {.head = 0, .tail = 0, .values = {}},
     };
 
@@ -355,6 +355,8 @@ tetris_render_grid(void)
     tetris_render_grid_columns(&grid);
     tetris_render_pieces(&grid);
     tetris_render_tiles(&grid);
+    tetris_render_hold(&grid);
+    tetris_render_next(&grid);
 }
 
 void
@@ -418,12 +420,47 @@ tetris_render_tiles(TetrisGridStuff* grid)
     }
 }
 
+void
+tetris_render_hold(TetrisGridStuff* grid)
+{
+    int16_t cell_size = grid->cell_size * 3 / 5;
+    int16_t x = grid->margin_x + 11 * (grid->grid_border + grid->cell_size) + 8;
+    int16_t y = grid->margin_y;
+    Rectangle rect = {
+        .x = x, .y = y, .width = cell_size * 5, .height = cell_size * 5};
+
+    DrawRectangleLinesEx(rect, grid->grid_border, WHITE);
+
+    if (tetris.hold == 0) return;
+
+    TetrisPiece piece = tetris_piece(tetris.hold);
+
+    tetris_render_small_piece(x, y, cell_size, piece.tiles[0], piece.type);
+}
+
+void
+tetris_render_small_piece(int16_t x, int16_t y, int16_t cell_size,
+                          TetrisTile tiles[4], TetrisPieceType type)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        DrawRectangle(x + (cell_size * tiles[i].x) + cell_size / 2,
+                      y + (cell_size * tiles[i].y) + cell_size / 2, cell_size,
+                      cell_size, tetris_colour(type));
+    }
+}
+
+void
+tetris_render_next(TetrisGridStuff* grid)
+{
+}
+
 Color
 tetris_colour(TetrisPieceType type)
 {
     switch (type)
     {
-    case I: return BLUE;
+    case I: return SKYBLUE;
     case O: return YELLOW;
     case T: return PURPLE;
     case S: return GREEN;
@@ -447,15 +484,6 @@ tetris_handle_input(void)
 
         switch (key)
         {
-        case KEY_X:
-            tetris.current_piece.rotation =
-                (tetris.current_piece.rotation + 1) % 4;
-            if (!tetris_valid_position())
-            {
-                tetris.current_piece.rotation =
-                    ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
-            }
-            break;
         case KEY_Z:
             tetris.current_piece.rotation =
                 ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
@@ -465,6 +493,27 @@ tetris_handle_input(void)
                     (tetris.current_piece.rotation + 1) % 4;
             }
             break;
+        case KEY_X:
+            tetris.current_piece.rotation =
+                (tetris.current_piece.rotation + 1) % 4;
+            if (!tetris_valid_position())
+            {
+                tetris.current_piece.rotation =
+                    ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
+            }
+            break;
+        case KEY_C:
+            if (tetris.hold == 0)
+            {
+                tetris.hold = tetris.current_piece.type;
+                tetris_next_piece();
+            }
+            else
+            {
+                TetrisPieceType temp = tetris.hold;
+                tetris.hold = tetris.current_piece.type;
+                tetris.current_piece = tetris_piece(temp);
+            }
         case KEY_LEFT:
             --tetris.current_piece.position.x;
             if (!tetris_valid_position()) ++tetris.current_piece.position.x;

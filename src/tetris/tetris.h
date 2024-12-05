@@ -43,6 +43,7 @@ typedef struct {
     int8_t current_index;
     float time;
     TetrisPiece current_piece;
+    TetrisPieceType hold;
     TetrisQueue next_pieces;
     TetrisPieceType grid[20][10];
 } TetrisState;
@@ -74,6 +75,9 @@ void tetris_render_grid_rows(TetrisGridStuff* grid);
 void tetris_render_grid_columns(TetrisGridStuff* grid);
 void tetris_render_pieces(TetrisGridStuff* grid);
 void tetris_render_tiles(TetrisGridStuff* grid);
+void tetris_render_hold(TetrisGridStuff* grid);
+void tetris_render_next(TetrisGridStuff* grid);
+void tetris_render_small_piece(int16_t x, int16_t y, int16_t cell_size, TetrisTile tiles[4], TetrisPieceType type);
 Color tetris_colour(TetrisPieceType type);
 void tetris_render_text(TetrisGridStuff* grid);
 
