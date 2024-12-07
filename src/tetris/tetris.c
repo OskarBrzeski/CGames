@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 TetrisState tetris = {};
 
@@ -38,6 +39,7 @@ void
 tetris_new_game(void)
 {
     tetris = (TetrisState) {
+        .game_over = false,
         .lines_cleared = 0,
         .current_index = 0,
         .time = 0.0,
@@ -230,9 +232,11 @@ tetris_piece(TetrisPieceType type)
 void
 tetris_run_game(void)
 {
-    tetris_piece_batch();
-    tetris_handle_input();
-    tetris_clear_line();
+    if (!tetris.game_over)
+    {
+        tetris_handle_input();
+        tetris_clear_line();
+    }
     tetris_render_game();
 }
 
@@ -249,9 +253,16 @@ tetris_place_piece(void)
     {
         int x = tetris.current_piece.position.x + tiles[i].x;
         int y = tetris.current_piece.position.y + tiles[i].y;
+
+        if (y < 0)
+        {
+            tetris.game_over = true;
+            return;
+        }
         tetris.grid[y][x] = tetris.current_piece.type;
     }
 
+    tetris_piece_batch();
     tetris_next_piece();
 }
 
@@ -278,14 +289,14 @@ tetris_valid_position(void)
 void
 tetris_piece_batch(void)
 {
-    if (tetris_queue_length(&(tetris.next_pieces)) < 8)
+    if (tetris_queue_length(&tetris.next_pieces) < 8)
     {
         TetrisPieceType values[7] = {I, O, T, S, Z, L, J};
         int last_index = 6;
         for (int i = 0; i < 7; i++)
         {
             int num = GetRandomValue(0, last_index);
-            tetris_queue_append(&(tetris.next_pieces), values[num]);
+            tetris_queue_append(&tetris.next_pieces, values[num]);
 
             for (int j = num; j < last_index; j++)
             {
@@ -299,7 +310,7 @@ tetris_piece_batch(void)
 void
 tetris_next_piece(void)
 {
-    TetrisPieceType type = tetris_queue_pop(&(tetris.next_pieces));
+    TetrisPieceType type = tetris_queue_pop(&tetris.next_pieces);
     tetris.current_piece = tetris_piece(type);
 }
 
@@ -313,7 +324,11 @@ tetris_clear_line(void)
         {
             if (tetris.grid[y][x] > 0) ++count;
         }
-        if (count == 10) { tetris_shift_lines(y); }
+        if (count == 10)
+        {
+            tetris_shift_lines(y);
+            tetris.lines_cleared++;
+        }
     }
 }
 
@@ -335,6 +350,7 @@ void
 tetris_render_game(void)
 {
     tetris_render_grid();
+    if (tetris.game_over) { tetris_render_game_over(); }
 }
 
 void
@@ -357,6 +373,7 @@ tetris_render_grid(void)
     tetris_render_tiles(&grid);
     tetris_render_hold(&grid);
     tetris_render_next(&grid);
+    tetris_render_text(&grid);
 }
 
 void
@@ -453,6 +470,16 @@ tetris_render_small_piece(int16_t x, int16_t y, int16_t cell_size,
 void
 tetris_render_next(TetrisGridStuff* grid)
 {
+    for (int i = 0; i < 5; i++)
+    {
+        TetrisPieceType piece_type = tetris_queue_peek(&tetris.next_pieces, i);
+        TetrisPiece piece = tetris_piece(piece_type);
+
+        int x = grid->margin_x + 11 * (grid->grid_border + grid->cell_size) + 8;
+        int y = grid->margin_y + grid->cell_size * (4 + 2 * i);
+        int cell_size = grid->cell_size * 3 / 5;
+        tetris_render_small_piece(x, y, cell_size, piece.tiles[0], piece_type);
+    }
 }
 
 Color
@@ -473,6 +500,36 @@ tetris_colour(TetrisPieceType type)
 void
 tetris_render_text(TetrisGridStuff* grid)
 {
+    tetris_render_cleared(grid);
+    tetris_render_score(grid);
+}
+
+void
+tetris_render_cleared(TetrisGridStuff* grid)
+{
+    char cleared_lines_text[24];
+    snprintf(cleared_lines_text, 24, "Lines Cleared: %d", tetris.lines_cleared);
+    DrawText(cleared_lines_text, 10, 10, 24, WHITE);
+}
+
+void
+tetris_render_score(TetrisGridStuff* grid)
+{
+    char score_text[24];
+    snprintf(score_text, 24, "Score: %d", tetris.score);
+    DrawText(score_text, 10, 50, 24, WHITE);
+}
+
+void
+tetris_render_game_over(void)
+{
+    int width = GetScreenWidth();
+    int height = GetScreenHeight();
+    DrawRectangle(0, 0, width, height, (Color) {0, 0, 0, 150});
+
+    int text_width = MeasureText("Game Over", 48);
+    DrawText("Game Over", (width - text_width) / 2, (height - 48) / 2, 48,
+             WHITE);
 }
 
 void
