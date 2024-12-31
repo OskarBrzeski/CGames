@@ -13,6 +13,7 @@ typedef enum {
     Z,
     L,
     J,
+    G,
 } TetrisPieceType;
 
 typedef struct {
@@ -58,7 +59,7 @@ TetrisPiece tetris_piece(TetrisPieceType type);
 void tetris_run_game(void);
 
 void tetris_place_piece(void);
-bool tetris_valid_position(void);
+bool tetris_valid_position(TetrisPiece* piece);
 void tetris_clear_line(void);
 void tetris_shift_lines(int8_t line);
 
@@ -75,8 +76,9 @@ void tetris_render_game(void);
 void tetris_render_grid(void);
 void tetris_render_grid_rows(TetrisGridStuff* grid);
 void tetris_render_grid_columns(TetrisGridStuff* grid);
-void tetris_render_pieces(TetrisGridStuff* grid);
+void tetris_render_piece(TetrisGridStuff* grid, TetrisPiece* piece);
 void tetris_render_tiles(TetrisGridStuff* grid);
+void tetris_render_ghost(TetrisGridStuff* grid);
 void tetris_render_hold(TetrisGridStuff* grid);
 void tetris_render_next(TetrisGridStuff* grid);
 void tetris_render_small_piece(int16_t x, int16_t y, int16_t cell_size, TetrisTile tiles[4], TetrisPieceType type);

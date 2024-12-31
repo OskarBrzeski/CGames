@@ -58,6 +58,7 @@ tetris_piece(TetrisPieceType type)
 {
     switch (type)
     {
+    case G: return tetris_piece(tetris.current_piece.type);
     case I:
         return (TetrisPiece) {
             .rotation = 0,
@@ -229,6 +230,47 @@ tetris_piece(TetrisPieceType type)
     }
 }
 
+TetrisPiece
+tetris_copy_piece(TetrisPiece* piece)
+{
+    TetrisPiece copy = (TetrisPiece) {
+
+        .rotation = piece->rotation,
+        .type = G,
+        .position =
+            (TetrisTile) {.x = piece->position.x, .y = piece->position.y},
+        .tiles = {
+                          {{.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0}},
+                          {{.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0}},
+                          {{.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0}},
+                          {{.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0},
+             {.x = 0, .y = 0}},
+                          }
+    };
+
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            copy.tiles[i][j].x = piece->tiles[i][j].x;
+            copy.tiles[i][j].y = piece->tiles[i][j].y;
+        }
+    }
+
+    return copy;
+}
+
 void
 tetris_run_game(void)
 {
@@ -243,7 +285,10 @@ tetris_run_game(void)
 void
 tetris_place_piece(void)
 {
-    while (tetris_valid_position()) { ++tetris.current_piece.position.y; }
+    while (tetris_valid_position(&tetris.current_piece))
+    {
+        ++tetris.current_piece.position.y;
+    }
     --tetris.current_piece.position.y;
 
     TetrisTile* tiles =
@@ -267,16 +312,16 @@ tetris_place_piece(void)
 }
 
 bool
-tetris_valid_position(void)
+tetris_valid_position(TetrisPiece* piece)
 {
-    int curr_x = tetris.current_piece.position.x;
-    int curr_y = tetris.current_piece.position.y;
-    int rotation = tetris.current_piece.rotation;
+    int curr_x = piece->position.x;
+    int curr_y = piece->position.y;
+    int rotation = piece->rotation;
 
     for (int i = 0; i < 4; i++)
     {
-        int x = curr_x + tetris.current_piece.tiles[rotation][i].x;
-        int y = curr_y + tetris.current_piece.tiles[rotation][i].y;
+        int x = curr_x + piece->tiles[rotation][i].x;
+        int y = curr_y + piece->tiles[rotation][i].y;
 
         if (x < 0 || x >= 10) return false;
         if (y >= 20) return false;
@@ -369,7 +414,8 @@ tetris_render_grid(void)
 
     tetris_render_grid_rows(&grid);
     tetris_render_grid_columns(&grid);
-    tetris_render_pieces(&grid);
+    tetris_render_ghost(&grid);
+    tetris_render_piece(&grid, &tetris.current_piece);
     tetris_render_tiles(&grid);
     tetris_render_hold(&grid);
     tetris_render_next(&grid);
@@ -401,10 +447,8 @@ tetris_render_grid_columns(TetrisGridStuff* grid)
 }
 
 void
-tetris_render_pieces(TetrisGridStuff* grid)
+tetris_render_piece(TetrisGridStuff* grid, TetrisPiece* piece)
 {
-    TetrisPiece* piece = &tetris.current_piece;
-
     for (int i = 0; i < 4; i++)
     {
         int offset = grid->cell_size + grid->grid_border;
@@ -416,7 +460,7 @@ tetris_render_pieces(TetrisGridStuff* grid)
             offset * (piece->position.y + piece->tiles[piece->rotation][i].y);
 
         DrawRectangle(x, y, grid->cell_size, grid->cell_size,
-                      tetris_colour(tetris.current_piece.type));
+                      tetris_colour(piece->type));
     }
 }
 
@@ -435,6 +479,17 @@ tetris_render_tiles(TetrisGridStuff* grid)
                           tetris_colour(tetris.grid[i][j]));
         }
     }
+}
+
+void
+tetris_render_ghost(TetrisGridStuff* grid)
+{
+    TetrisPiece ghost = tetris_copy_piece(&tetris.current_piece);
+
+    while (tetris_valid_position(&ghost)) { ++ghost.position.y; }
+    --ghost.position.y;
+
+    tetris_render_piece(grid, &ghost);
 }
 
 void
@@ -494,6 +549,7 @@ tetris_colour(TetrisPieceType type)
     case Z: return RED;
     case L: return ORANGE;
     case J: return DARKBLUE;
+    case G: return GRAY;
     }
 }
 
@@ -544,7 +600,7 @@ tetris_handle_input(void)
         case KEY_Z:
             tetris.current_piece.rotation =
                 ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
-            if (!tetris_valid_position())
+            if (!tetris_valid_position(&tetris.current_piece))
             {
                 tetris.current_piece.rotation =
                     (tetris.current_piece.rotation + 1) % 4;
@@ -553,7 +609,7 @@ tetris_handle_input(void)
         case KEY_X:
             tetris.current_piece.rotation =
                 (tetris.current_piece.rotation + 1) % 4;
-            if (!tetris_valid_position())
+            if (!tetris_valid_position(&tetris.current_piece))
             {
                 tetris.current_piece.rotation =
                     ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
@@ -573,15 +629,18 @@ tetris_handle_input(void)
             }
         case KEY_LEFT:
             --tetris.current_piece.position.x;
-            if (!tetris_valid_position()) ++tetris.current_piece.position.x;
+            if (!tetris_valid_position(&tetris.current_piece))
+                ++tetris.current_piece.position.x;
             break;
         case KEY_RIGHT:
             ++tetris.current_piece.position.x;
-            if (!tetris_valid_position()) --tetris.current_piece.position.x;
+            if (!tetris_valid_position(&tetris.current_piece))
+                --tetris.current_piece.position.x;
             break;
         case KEY_DOWN:
             ++tetris.current_piece.position.y;
-            if (!tetris_valid_position()) --tetris.current_piece.position.y;
+            if (!tetris_valid_position(&tetris.current_piece))
+                --tetris.current_piece.position.y;
             break;
         case KEY_UP: tetris_place_piece(); break;
         }
