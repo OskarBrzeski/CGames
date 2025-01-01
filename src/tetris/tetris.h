@@ -55,6 +55,7 @@ void tetris_piece_batch(void);
 void tetris_next_piece(void);
 void tetris_new_game(void);
 TetrisPiece tetris_piece(TetrisPieceType type);
+TetrisPiece tetris_copy_piece(TetrisPiece* piece);
 
 void tetris_run_game(void);
 
@@ -62,6 +63,7 @@ void tetris_place_piece(void);
 bool tetris_valid_position(TetrisPiece* piece);
 void tetris_clear_line(void);
 void tetris_shift_lines(int8_t line);
+void tetris_softdrop(void);
 
 typedef struct {
     int16_t window_width;

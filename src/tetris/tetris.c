@@ -276,6 +276,7 @@ tetris_run_game(void)
 {
     if (!tetris.game_over)
     {
+        tetris_softdrop();
         tetris_handle_input();
         tetris_clear_line();
     }
@@ -389,6 +390,28 @@ tetris_shift_lines(int8_t line)
     }
 
     for (int x = 0; x < 10; x++) { tetris.grid[0][x] = 0; }
+}
+
+void
+tetris_softdrop(void)
+{
+    float dt = GetFrameTime();
+    tetris.time += dt;
+
+    int level = tetris.lines_cleared / 10;
+    float interval = 0.5 - 0.03 * level;
+    if (interval < 0.08) { interval = 0.08; }
+
+    if (tetris.time > interval)
+    {
+        tetris.time -= interval;
+        tetris.current_piece.position.y++;
+        if (!tetris_valid_position(&tetris.current_piece))
+        {
+            tetris.current_piece.position.y--;
+            tetris_place_piece();
+        }
+    }
 }
 
 void
