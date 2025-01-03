@@ -650,6 +650,7 @@ tetris_handle_input(void)
                 tetris.hold = tetris.current_piece.type;
                 tetris.current_piece = tetris_piece(temp);
             }
+            break;
         case KEY_LEFT:
             --tetris.current_piece.position.x;
             if (!tetris_valid_position(&tetris.current_piece))
