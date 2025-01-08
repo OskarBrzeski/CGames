@@ -1,0 +1,52 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-I./raylib/",
+      "./src/main.c"
+    ],
+    "directory": "/home/user/Code/CGames",
+    "file": "/home/user/Code/CGames/src/main.c"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-I./raylib/",
+      "./src/menu/menu.c"
+    ],
+    "directory": "/home/user/Code/CGames",
+    "file": "/home/user/Code/CGames/src/menu/menu.c"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-I./raylib/",
+      "./src/pong/pong.c"
+    ],
+    "directory": "/home/user/Code/CGames",
+    "file": "/home/user/Code/CGames/src/pong/pong.c"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-I./raylib/",
+      "./src/snake/snake.c"
+    ],
+    "directory": "/home/user/Code/CGames",
+    "file": "/home/user/Code/CGames/src/snake/snake.c"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-I./raylib/",
+      "./src/tetris/tetris.c"
+    ],
+    "directory": "/home/user/Code/CGames",
+    "file": "/home/user/Code/CGames/src/tetris/tetris.c"
+  }
+]
