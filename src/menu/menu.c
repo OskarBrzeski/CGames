@@ -1,9 +1,10 @@
-#import "menu.h"
+#include "menu.h"
 
-#import "../pong/pong.h"
-#import "../snake/snake.h"
-#import "../tetris/tetris.h"
-#import "raylib.h"
+#include "../pong/pong.h"
+#include "../snake/snake.h"
+#include "../tetris/tetris.h"
+#include "../tofe/tofe.h"
+#include "raylib.h"
 
 #define ITEMHEIGHT  80
 #define ICONSIZE    12
@@ -11,7 +12,7 @@
 #define TEXTSIZE    30
 #define TEXTOFFSETX ITEMHEIGHT
 #define TEXTOFFSETY (ITEMHEIGHT - TEXTSIZE) / 2
-#define GAMECOUNT   3
+#define GAMECOUNT   4
 
 int select_position = 0;
 GameScreen current_game = MENU;
@@ -32,6 +33,7 @@ run_menu(void)
         case PONG:   pong_run_game(); break;
         case SNAKE:  snake_run_game(); break;
         case TETRIS: tetris_run_game(); break;
+        case TOFE:   tofe_run_game(); break;
         default:     current_game = MENU; render_menu();
         }
     }
@@ -50,6 +52,8 @@ render_menu(void)
     DrawText("Pong", TEXTOFFSETX, TEXTOFFSETY, TEXTSIZE, WHITE);
     DrawText("Snake", TEXTOFFSETX, ITEMHEIGHT + TEXTOFFSETY, TEXTSIZE, WHITE);
     DrawText("Tetris", TEXTOFFSETX, ITEMHEIGHT * 2 + TEXTOFFSETY, TEXTSIZE,
+             WHITE);
+    DrawText("2048", TEXTOFFSETX, ITEMHEIGHT * 3 + TEXTOFFSETY, TEXTSIZE,
              WHITE);
 }
 
@@ -97,6 +101,10 @@ change_game(void)
     case TETRIS:
         current_game = TETRIS;
         tetris_new_game();
+        break;
+    case TOFE:
+        current_game = TOFE;
+        tofe_new_game();
         break;
     }
 }

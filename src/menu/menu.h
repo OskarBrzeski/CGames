@@ -1,12 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
-typedef enum { MENU, PONG, SNAKE, TETRIS } GameScreen;
-
-typedef struct 
-{
-    int select_position;
-} MenuState;
+typedef enum { MENU, PONG, SNAKE, TETRIS, TOFE } GameScreen;
 
 void run_menu(void);
 void render_menu(void);
