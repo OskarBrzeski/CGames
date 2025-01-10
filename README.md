@@ -11,12 +11,12 @@ The following games are in a playable state, but may contain some bugs:
 - Pong
 - Snake
 - Tetris
+- 2048
 
 ## Planned Games
 
 I plan to create basic recreations of the following games:
 
-- 2048
 - osu!
 - Civilization
 - Minecraft
