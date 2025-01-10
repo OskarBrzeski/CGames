@@ -32,6 +32,7 @@ void tofe_render_grid(Grid* grid);
 void tofe_render_grid_rows(Grid* grid);
 void tofe_render_grid_columns(Grid* grid);
 void tofe_render_tiles(Grid* grid);
+Color tofe_tile_colour(int32_t value);
 void tofe_render_game_over(void);
 
 void tofe_handle_input(void);
