@@ -1,10 +1,8 @@
 #include "tofe.h"
 
-#include "../utils/utils.h"
 #include "raylib.h"
 
-#include <stdbool.h>
-#include <stdio.h>
+#define ANIM_TIME 0.3
 
 TofeGameState tofe = {};
 
@@ -12,27 +10,44 @@ void
 tofe_new_game(void)
 {
     tofe = (TofeGameState) {
+        .animation = false,
+        .anim_count = 0,
+        .animations = {{0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0},
+                       {0, 0, 0, 0}},
+        .time = 0.0,
         .score = 0,
-        .tiles = {
-                  {{.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false}},
-                  {{.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false}},
-                  {{.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false}},
-                  {{.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false},
-             {.value = 0, .upgrade = false}},
-                  }
+        .tiles =
+            {
+                       {{.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false}},
+                       {{.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false}},
+                       {{.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false}},
+                       {{.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false},
+                 {.value = 0, .upgrade = false, .animate = false}},
+                       },
     };
     tofe_spawn_tile();
+    tofe_clear_anims();
 }
 
 void
@@ -40,8 +55,11 @@ tofe_run_game(void)
 {
     if (!tofe_is_game_over())
     {
-        tofe_handle_input();
-        tofe_upgrade_tiles();
+        if (!tofe.animation)
+        {
+            tofe_handle_input();
+            tofe_upgrade_tiles();
+        }
     }
     tofe_render_game();
 }
@@ -68,6 +86,7 @@ tofe_spawn_tile(void)
 
     int16_t value = GetRandomValue(1, 8) == 8 ? 4 : 2;
     tofe.tiles[pos_true / 4][pos_true % 4].value = value;
+    tofe.tiles[pos_true / 4][pos_true % 4].animate = true;
 }
 
 void
@@ -77,23 +96,38 @@ tofe_move_up(void)
     {
         for (int y = 1; y < 4; y++)
         {
-            int cy = y;
-            while (tofe.tiles[cy - 1][x].value == 0 && cy > 0)
+            if (tofe.tiles[y][x].value == 0) { continue; }
+
+            int curr_y = y;
+            while (curr_y > 0 && tofe.tiles[curr_y - 1][x].value == 0)
             {
-                tofe.tiles[cy - 1][x].value = tofe.tiles[cy][x].value;
-                tofe.tiles[cy][x].value = 0;
-                --cy;
+                tofe.tiles[curr_y - 1][x].value = tofe.tiles[curr_y][x].value;
+                tofe.tiles[curr_y][x].value = 0;
+                --curr_y;
             }
 
-            if (tofe.tiles[cy - 1][x].upgrade) { continue; }
-
-            if (tofe.tiles[cy][x].value == tofe.tiles[cy - 1][x].value)
+            if (curr_y == 0 || tofe.tiles[curr_y - 1][x].upgrade)
             {
-                tofe.tiles[cy - 1][x].upgrade = true;
-                tofe.tiles[cy][x].value = 0;
+                tofe_append_anim(x, y, x, curr_y, tofe.tiles[curr_y][x].value);
+                tofe.tiles[curr_y][x].animate = true;
+            }
+            else if (tofe.tiles[curr_y][x].value ==
+                     tofe.tiles[curr_y - 1][x].value)
+            {
+                tofe.tiles[curr_y - 1][x].upgrade = true;
+                tofe.tiles[curr_y][x].value = 0;
+                tofe_append_anim(x, y, x, curr_y - 1,
+                                 tofe.tiles[curr_y - 1][x].value);
+                tofe.tiles[curr_y - 1][x].animate = true;
+            }
+            else
+            {
+                tofe_append_anim(x, y, x, curr_y, tofe.tiles[curr_y][x].value);
+                tofe.tiles[curr_y][x].animate = true;
             }
         }
     }
+    tofe.animation = true;
     tofe_spawn_tile();
 }
 
@@ -104,23 +138,39 @@ tofe_move_down(void)
     {
         for (int y = 2; y >= 0; y--)
         {
-            int cy = y;
-            while (tofe.tiles[cy + 1][x].value == 0 && cy < 3)
+            if (tofe.tiles[y][x].value == 0) { continue; }
+
+            int curr_y = y;
+            while (tofe.tiles[curr_y + 1][x].value == 0 && curr_y < 3)
             {
-                tofe.tiles[cy + 1][x].value = tofe.tiles[cy][x].value;
-                tofe.tiles[cy][x].value = 0;
-                ++cy;
+                tofe.tiles[curr_y + 1][x].value = tofe.tiles[curr_y][x].value;
+                tofe.tiles[curr_y][x].value = 0;
+                ++curr_y;
             }
 
-            if (tofe.tiles[cy + 1][x].upgrade) { continue; }
-
-            if (tofe.tiles[cy][x].value == tofe.tiles[cy + 1][x].value)
+            if (curr_y == 3 || tofe.tiles[curr_y + 1][x].upgrade)
             {
-                tofe.tiles[cy + 1][x].upgrade = true;
-                tofe.tiles[cy][x].value = 0;
+                tofe_append_anim(x, y, x, curr_y, tofe.tiles[curr_y][x].value);
+                tofe.tiles[curr_y][x].animate = true;
+            }
+
+            else if (tofe.tiles[curr_y][x].value ==
+                     tofe.tiles[curr_y + 1][x].value)
+            {
+                tofe.tiles[curr_y + 1][x].upgrade = true;
+                tofe.tiles[curr_y][x].value = 0;
+                tofe_append_anim(x, y, x, curr_y + 1,
+                                 tofe.tiles[curr_y + 1][x].value);
+                tofe.tiles[curr_y + 1][x].animate = true;
+            }
+            else
+            {
+                tofe_append_anim(x, y, x, curr_y, tofe.tiles[curr_y][x].value);
+                tofe.tiles[curr_y][x].animate = true;
             }
         }
     }
+    tofe.animation = true;
     tofe_spawn_tile();
 }
 
@@ -131,23 +181,39 @@ tofe_move_left(void)
     {
         for (int x = 1; x < 4; x++)
         {
-            int cx = x;
-            while (tofe.tiles[y][cx - 1].value == 0 && cx > 0)
+            if (tofe.tiles[y][x].value == 0) { continue; }
+
+            int curr_x = x;
+            while (curr_x > 0 && tofe.tiles[y][curr_x - 1].value == 0)
             {
-                tofe.tiles[y][cx - 1].value = tofe.tiles[y][cx].value;
-                tofe.tiles[y][cx].value = 0;
-                --cx;
+                tofe.tiles[y][curr_x - 1].value = tofe.tiles[y][curr_x].value;
+                tofe.tiles[y][curr_x].value = 0;
+                --curr_x;
             }
 
-            if (tofe.tiles[y][cx - 1].upgrade) { continue; }
-
-            if (tofe.tiles[y][cx].value == tofe.tiles[y][cx - 1].value)
+            if (curr_x == 0 || tofe.tiles[y][curr_x - 1].upgrade)
             {
-                tofe.tiles[y][cx - 1].upgrade = true;
-                tofe.tiles[y][cx].value = 0;
+
+                tofe_append_anim(x, y, curr_x, y, tofe.tiles[y][curr_x].value);
+                tofe.tiles[y][curr_x].animate = true;
+            }
+            else if (tofe.tiles[y][curr_x].value ==
+                     tofe.tiles[y][curr_x - 1].value)
+            {
+                tofe.tiles[y][curr_x - 1].upgrade = true;
+                tofe.tiles[y][curr_x].value = 0;
+                tofe_append_anim(x, y, curr_x - 1, y,
+                                 tofe.tiles[y][curr_x - 1].value);
+                tofe.tiles[y][curr_x - 1].animate = true;
+            }
+            else
+            {
+                tofe_append_anim(x, y, curr_x, y, tofe.tiles[y][curr_x].value);
+                tofe.tiles[y][curr_x].animate = true;
             }
         }
     }
+    tofe.animation = true;
     tofe_spawn_tile();
 }
 
@@ -158,24 +224,71 @@ tofe_move_right(void)
     {
         for (int x = 2; x >= 0; x--)
         {
-            int cx = x;
-            while (tofe.tiles[y][cx + 1].value == 0 && cx < 3)
+            if (tofe.tiles[y][x].value == 0) { continue; }
+
+            int curr_x = x;
+            while (curr_x < 3 && tofe.tiles[y][curr_x + 1].value == 0)
             {
-                tofe.tiles[y][cx + 1].value = tofe.tiles[y][cx].value;
-                tofe.tiles[y][cx].value = 0;
-                ++cx;
+                tofe.tiles[y][curr_x + 1].value = tofe.tiles[y][curr_x].value;
+                tofe.tiles[y][curr_x].value = 0;
+                ++curr_x;
             }
 
-            if (tofe.tiles[y][cx + 1].upgrade) { continue; }
-
-            if (tofe.tiles[y][cx].value == tofe.tiles[y][cx + 1].value)
+            if (curr_x == 3 || tofe.tiles[y][curr_x + 1].upgrade)
             {
-                tofe.tiles[y][cx + 1].upgrade = true;
-                tofe.tiles[y][cx].value = 0;
+                tofe_append_anim(x, y, curr_x, y, tofe.tiles[y][curr_x].value);
+                tofe.tiles[y][curr_x].animate = true;
+            }
+            else if (tofe.tiles[y][curr_x].value ==
+                     tofe.tiles[y][curr_x + 1].value)
+            {
+                tofe.tiles[y][curr_x + 1].upgrade = true;
+                tofe.tiles[y][curr_x].value = 0;
+                tofe_append_anim(x, y, curr_x + 1, y,
+                                 tofe.tiles[y][curr_x + 1].value);
+                tofe.tiles[y][curr_x + 1].animate = true;
+            }
+            else
+            {
+                tofe_append_anim(x, y, curr_x, y, tofe.tiles[y][curr_x].value);
+                tofe.tiles[y][curr_x].animate = true;
             }
         }
     }
+    tofe.animation = true;
     tofe_spawn_tile();
+}
+
+void
+tofe_append_anim(int8_t sx, int8_t sy, int8_t ex, int8_t ey, int32_t v)
+{
+    TofeAnimation* anim = &tofe.animations[tofe.anim_count];
+    anim->startx = sx;
+    anim->starty = sy;
+    anim->endx = ex;
+    anim->endy = ey;
+    anim->value = v;
+    ++tofe.anim_count;
+}
+
+void
+tofe_clear_anims(void)
+{
+    for (int i = 0; i < tofe.anim_count; i++)
+    {
+        TofeAnimation* anim = &tofe.animations[i];
+        anim->startx = 0;
+        anim->starty = 0;
+        anim->endx = 0;
+        anim->endy = 0;
+        anim->value = 0;
+    }
+    tofe.anim_count = 0;
+
+    for (int y = 0; y < 4; y++)
+    {
+        for (int x = 0; x < 4; x++) { tofe.tiles[y][x].animate = false; }
+    }
 }
 
 void
@@ -226,6 +339,27 @@ tofe_render_game(void)
     tofe_render_grid(&grid);
     tofe_render_tiles(&grid);
 
+    if (tofe.animation)
+    {
+        float dt = GetFrameTime();
+        tofe.time += dt;
+
+        if (tofe.time > ANIM_TIME)
+        {
+            tofe_clear_anims();
+            tofe.animation = false;
+            tofe.time = 0;
+            tofe_render_tiles(&grid);
+        }
+        else
+        {
+            for (int i = 0; i < tofe.anim_count; i++)
+            {
+                tofe_render_anim(&grid, &tofe.animations[i]);
+            }
+        }
+    }
+
     if (tofe_is_game_over()) { tofe_render_game_over(); }
 }
 
@@ -271,25 +405,87 @@ tofe_render_tiles(Grid* grid)
     {
         for (int x = 0; x < 4; x++)
         {
+            if (tofe.tiles[y][x].animate) { continue; }
             if (tofe.tiles[y][x].value == 0) { continue; }
 
-            Color colour = tofe_tile_colour(tofe.tiles[y][x].value);
-            int rx = grid->margin.x + grid->thickness * (x + 1) +
-                     grid->cell_size * x;
-            int ry = grid->margin.y + grid->thickness * (y + 1) +
-                     grid->cell_size * y;
-            DrawRectangle(rx, ry, grid->cell_size, grid->cell_size, colour);
+            int32_t value = tofe.tiles[y][x].value;
+            TofeCoords coords = tofe_tile_coords(grid, x, y);
+            tofe_render_tile(grid, coords, value);
 
             char text[10];
             snprintf(text, 10, "%d", tofe.tiles[y][x].value);
-            int text_length = MeasureText(text, 40);
+            int text_width = MeasureText(text, 40);
 
-            int xx = grid->margin.x + (grid->thickness + grid->cell_size) * x +
-                     grid->thickness + grid->cell_size / 2 - text_length / 2;
-            int yy = grid->margin.y + (grid->thickness + grid->cell_size) * y +
-                     grid->thickness + grid->cell_size / 2 - 20;
-            DrawText(text, xx, yy, 40, WHITE);
+            TofeCoords tcoords = tofe_text_coords(grid, x, y, text_width);
+            tofe_render_text(grid, tcoords, text);
         }
+    }
+}
+
+void
+tofe_render_tile(Grid* grid, TofeCoords coords, int32_t value)
+{
+    DrawRectangle(coords.x, coords.y, grid->cell_size, grid->cell_size,
+                  tofe_tile_colour(value));
+}
+
+TofeCoords
+tofe_tile_coords(Grid* grid, int8_t x, int8_t y)
+{
+    int pixel_x = grid->margin.x + grid->thickness +
+                  x * (grid->thickness + grid->cell_size);
+    int pixel_y = grid->margin.y + grid->thickness +
+                  y * (grid->thickness + grid->cell_size);
+
+    return (TofeCoords) {.x = pixel_x, .y = pixel_y};
+}
+
+void
+tofe_render_text(Grid* grid, TofeCoords coords, char* text)
+{
+    DrawText(text, coords.x, coords.y, 40, WHITE);
+}
+
+TofeCoords
+tofe_text_coords(Grid* grid, int8_t x, int8_t y, int32_t text_width)
+{
+    int text_x = grid->margin.x + grid->thickness +
+                 x * (grid->thickness + grid->cell_size) + grid->cell_size / 2 -
+                 text_width / 2;
+    int text_y = grid->margin.y + grid->thickness +
+                 y * (grid->thickness + grid->cell_size) + grid->cell_size / 2 -
+                 20;
+    return (TofeCoords) {.x = text_x, .y = text_y};
+}
+
+void
+tofe_render_anim(Grid* grid, TofeAnimation* anim)
+{
+    for (int i = 0; i < tofe.anim_count; i++)
+    {
+        TofeAnimation anim = tofe.animations[i];
+
+        TofeCoords start = tofe_tile_coords(grid, anim.startx, anim.starty);
+        TofeCoords end = tofe_tile_coords(grid, anim.endx, anim.endy);
+        float interp_x = (end.x - start.x) * tofe.time / ANIM_TIME + start.x;
+        float interp_y = (end.y - start.y) * tofe.time / ANIM_TIME + start.y;
+        TofeCoords final = {.x = interp_x, .y = interp_y};
+        tofe_render_tile(grid, final, anim.value);
+
+        char text[10];
+        snprintf(text, 10, "%d", anim.value);
+        int text_width = MeasureText(text, 40);
+
+        TofeCoords tstart =
+            tofe_text_coords(grid, anim.startx, anim.starty, text_width);
+        TofeCoords tend =
+            tofe_text_coords(grid, anim.endx, anim.endy, text_width);
+        float tinterp_x =
+            (tend.x - tstart.x) * tofe.time / ANIM_TIME + tstart.x;
+        float tinterp_y =
+            (tend.y - tstart.y) * tofe.time / ANIM_TIME + tstart.y;
+        TofeCoords tfinal = {.x = tinterp_x, .y = tinterp_y};
+        tofe_render_text(grid, tfinal, text);
     }
 }
 
