@@ -10,6 +10,7 @@ int
 main(void)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Starting Example");
+    SetWindowMonitor(0);
     SetTargetFPS(60);
     SetExitKey(KEY_F4);
 
