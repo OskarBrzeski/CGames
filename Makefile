@@ -1,4 +1,4 @@
-LIBS = -I./raylib/ -L./raylib/ -l:libraylib.a -lm
+LIBS = -L./raylib/ -lraylib -lm
 
 run: build
 	./bin/main
