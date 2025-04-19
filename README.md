@@ -52,3 +52,12 @@ make clean
 ```
 
 The make configuraion can be found in the `Makefile` file.
+
+## Development
+
+If you are using clangd as your LSP, you may want to use `bear` to create a
+compilation database.
+
+```bash
+bear -- make
+```
