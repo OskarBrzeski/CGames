@@ -2,7 +2,7 @@
 
 #include "raylib.h"
 
-#define ANIM_TIME 0.3
+#define ANIM_TIME 0.2
 
 TofeGameState tofe = {};
 
@@ -94,7 +94,7 @@ tofe_move_up(void)
 {
     for (int x = 0; x < 4; x++)
     {
-        for (int y = 1; y < 4; y++)
+        for (int y = 0; y < 4; y++)
         {
             if (tofe.tiles[y][x].value == 0) { continue; }
 
@@ -118,7 +118,7 @@ tofe_move_up(void)
                 tofe.tiles[curr_y][x].value = 0;
                 tofe_append_anim(x, y, x, curr_y - 1,
                                  tofe.tiles[curr_y - 1][x].value);
-                tofe.tiles[curr_y - 1][x].animate = true;
+                tofe.tiles[curr_y][x].animate = true;
             }
             else
             {
@@ -136,7 +136,7 @@ tofe_move_down(void)
 {
     for (int x = 0; x < 4; x++)
     {
-        for (int y = 2; y >= 0; y--)
+        for (int y = 3; y >= 0; y--)
         {
             if (tofe.tiles[y][x].value == 0) { continue; }
 
@@ -179,7 +179,7 @@ tofe_move_left(void)
 {
     for (int y = 0; y < 4; y++)
     {
-        for (int x = 1; x < 4; x++)
+        for (int x = 0; x < 4; x++)
         {
             if (tofe.tiles[y][x].value == 0) { continue; }
 
@@ -222,7 +222,7 @@ tofe_move_right(void)
 {
     for (int y = 0; y < 4; y++)
     {
-        for (int x = 2; x >= 0; x--)
+        for (int x = 3; x >= 0; x--)
         {
             if (tofe.tiles[y][x].value == 0) { continue; }
 
@@ -461,32 +461,25 @@ tofe_text_coords(Grid* grid, int8_t x, int8_t y, int32_t text_width)
 void
 tofe_render_anim(Grid* grid, TofeAnimation* anim)
 {
-    for (int i = 0; i < tofe.anim_count; i++)
-    {
-        TofeAnimation anim = tofe.animations[i];
+    TofeCoords start = tofe_tile_coords(grid, anim->startx, anim->starty);
+    TofeCoords end = tofe_tile_coords(grid, anim->endx, anim->endy);
+    float interp_x = (end.x - start.x) * tofe.time / ANIM_TIME + start.x;
+    float interp_y = (end.y - start.y) * tofe.time / ANIM_TIME + start.y;
+    TofeCoords final = {.x = interp_x, .y = interp_y};
+    tofe_render_tile(grid, final, anim->value);
 
-        TofeCoords start = tofe_tile_coords(grid, anim.startx, anim.starty);
-        TofeCoords end = tofe_tile_coords(grid, anim.endx, anim.endy);
-        float interp_x = (end.x - start.x) * tofe.time / ANIM_TIME + start.x;
-        float interp_y = (end.y - start.y) * tofe.time / ANIM_TIME + start.y;
-        TofeCoords final = {.x = interp_x, .y = interp_y};
-        tofe_render_tile(grid, final, anim.value);
+    char text[10];
+    snprintf(text, 10, "%d", anim->value);
+    int text_width = MeasureText(text, 40);
 
-        char text[10];
-        snprintf(text, 10, "%d", anim.value);
-        int text_width = MeasureText(text, 40);
-
-        TofeCoords tstart =
-            tofe_text_coords(grid, anim.startx, anim.starty, text_width);
-        TofeCoords tend =
-            tofe_text_coords(grid, anim.endx, anim.endy, text_width);
-        float tinterp_x =
-            (tend.x - tstart.x) * tofe.time / ANIM_TIME + tstart.x;
-        float tinterp_y =
-            (tend.y - tstart.y) * tofe.time / ANIM_TIME + tstart.y;
-        TofeCoords tfinal = {.x = tinterp_x, .y = tinterp_y};
-        tofe_render_text(grid, tfinal, text);
-    }
+    TofeCoords tstart =
+        tofe_text_coords(grid, anim->startx, anim->starty, text_width);
+    TofeCoords tend =
+        tofe_text_coords(grid, anim->endx, anim->endy, text_width);
+    float tinterp_x = (tend.x - tstart.x) * tofe.time / ANIM_TIME + tstart.x;
+    float tinterp_y = (tend.y - tstart.y) * tofe.time / ANIM_TIME + tstart.y;
+    TofeCoords tfinal = {.x = tinterp_x, .y = tinterp_y};
+    tofe_render_text(grid, tfinal, text);
 }
 
 Color

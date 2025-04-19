@@ -29,7 +29,7 @@ typedef struct {
 typedef struct {
     bool animation;
     int8_t anim_count;
-    TofeAnimation animations[12];
+    TofeAnimation animations[16];
     float time;
     int32_t score;
     TofeTile tiles[4][4];
