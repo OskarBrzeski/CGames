@@ -313,20 +313,21 @@ snake_cell_equal(SnakeGridCell c1, SnakeGridCell c2)
 void
 snake_new_fruit(void)
 {
-    int position = GetRandomValue(0, ROWS * COLUMNS - state.snake_length);
+    int position = GetRandomValue(0, ROWS * COLUMNS - state.snake_length - 1);
 
     int area[ROWS * COLUMNS] = {0};
     snake_grid_arr(area);
 
     for (int i = 0, empty = 0; i < ROWS * COLUMNS; i++)
     {
-        if (area[i] == 0) ++empty;
+        if (area[i]) continue;
 
         if (empty == position)
         {
             state.fruit = (SnakeGridCell) {.x = i % COLUMNS, .y = i / COLUMNS};
             break;
         }
+        ++empty;
     }
 }
 
