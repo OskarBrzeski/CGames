@@ -9,6 +9,7 @@
 #define MSPERTICK 200
 
 typedef enum {
+    NONE,
     UP,
     LEFT,
     DOWN,
@@ -24,6 +25,7 @@ typedef enum {
 typedef struct {
     int x;
     int y;
+    SnakeDirection dir;
 } SnakeGridCell;
 
 typedef struct {
@@ -43,6 +45,8 @@ int snake_cell_size(void);
 int snake_margin(void);
 void snake_render_grid(void);
 void snake_render_cell(SnakeGridCell cell, Color color);
+void snake_render_cell_head_anim(SnakeGridCell cell, Color color);
+void snake_render_cell_tail_anim(SnakeGridCell cell, Color color);
 void snake_render_game_over(void);
 void snake_update_pos(void);
 void snake_handle_input(void);
