@@ -55,7 +55,7 @@ void tetris_piece_batch(void);
 void tetris_next_piece(void);
 void tetris_new_game(void);
 TetrisPiece tetris_piece(TetrisPieceType type);
-TetrisPiece tetris_copy_piece(TetrisPiece* piece);
+TetrisPiece tetris_copy_piece(TetrisPiece* piece, TetrisPieceType type);
 
 void tetris_run_game(void);
 
@@ -64,6 +64,16 @@ bool tetris_valid_position(TetrisPiece* piece);
 void tetris_clear_line(void);
 void tetris_shift_lines(int8_t line);
 void tetris_softdrop(void);
+
+typedef struct {
+	TetrisTile kicks[4][5];
+} TetrisKicks;
+
+void tetris_rotate_ccw(void);
+TetrisKicks tetris_get_srs_kicks_ccw(void);
+void tetris_rotate_cw(void);
+TetrisKicks tetris_get_srs_kicks_cw(void);
+void tetris_apply_kicks(TetrisPiece* piece, TetrisKicks* kicks, int i);
 
 typedef struct {
     int16_t window_width;

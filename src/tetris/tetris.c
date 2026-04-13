@@ -231,12 +231,11 @@ tetris_piece(TetrisPieceType type)
 }
 
 TetrisPiece
-tetris_copy_piece(TetrisPiece* piece)
+tetris_copy_piece(TetrisPiece* piece, TetrisPieceType type)
 {
     TetrisPiece copy = (TetrisPiece) {
-
         .rotation = piece->rotation,
-        .type = G,
+        .type = type,
         .position =
             (TetrisTile) {.x = piece->position.x, .y = piece->position.y},
         .tiles = {
@@ -415,6 +414,199 @@ tetris_softdrop(void)
 }
 
 void
+tetris_rotate_ccw(void)
+{
+    TetrisKicks kicks = tetris_get_srs_kicks_ccw();
+
+    tetris.current_piece.rotation =
+        ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
+
+    for (int i = 0; i < 5; i++)
+    {
+        TetrisPiece kicked_piece =
+            tetris_copy_piece(&tetris.current_piece, tetris.current_piece.type);
+        tetris_apply_kicks(&kicked_piece, &kicks, i);
+
+        if (tetris_valid_position(&kicked_piece))
+        {
+            tetris.current_piece = kicked_piece;
+            return;
+        }
+    }
+
+    tetris.current_piece.rotation = (tetris.current_piece.rotation + 1) % 4;
+}
+
+TetrisKicks
+tetris_get_srs_kicks_ccw()
+{
+    if (tetris.current_piece.type == I)
+    {
+        TetrisKicks kicks = {
+            .kicks = {
+                      {
+                    {.x = 0, .y = 0},
+                    {.x = 2, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = 2, .y = 1},
+                    {.x = -1, .y = -2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = -2, .y = 0},
+                    {.x = 1, .y = -2},
+                    {.x = -2, .y = 1},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = -2, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = -2, .y = -1},
+                    {.x = 1, .y = 2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = 2, .y = 0},
+                    {.x = -1, .y = 2},
+                    {.x = 2, .y = -1},
+                }, }
+        };
+        return kicks;
+    }
+    else
+    {
+        TetrisKicks kicks = {
+            .kicks = {
+                      {
+                    {.x = 0, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = 1, .y = -1},
+                    {.x = 0, .y = 2},
+                    {.x = 1, .y = 2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = -1, .y = 1},
+                    {.x = 0, .y = -2},
+                    {.x = -1, .y = -2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = -1, .y = -1},
+                    {.x = 0, .y = 2},
+                    {.x = -1, .y = 2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = 1, .y = 1},
+                    {.x = 0, .y = -2},
+                    {.x = 1, .y = -2},
+                }, }
+        };
+        return kicks;
+    }
+}
+
+void
+tetris_rotate_cw(void)
+{
+    TetrisKicks kicks = tetris_get_srs_kicks_cw();
+
+    tetris.current_piece.rotation = (tetris.current_piece.rotation + 1) % 4;
+
+    for (int i = 0; i < 5; i++)
+    {
+        TetrisPiece kicked_piece =
+            tetris_copy_piece(&tetris.current_piece, tetris.current_piece.type);
+        tetris_apply_kicks(&kicked_piece, &kicks, i);
+
+        if (tetris_valid_position(&kicked_piece))
+        {
+            tetris.current_piece = kicked_piece;
+            return;
+        }
+    }
+
+    tetris.current_piece.rotation =
+        ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
+}
+
+TetrisKicks
+tetris_get_srs_kicks_cw()
+{
+    if (tetris.current_piece.type == I)
+    {
+        TetrisKicks kicks = {
+            .kicks = {
+                      {
+                    {.x = 0, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = -2, .y = 0},
+                    {.x = 1, .y = -2},
+                    {.x = -2, .y = 1},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = -2, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = -2, .y = -1},
+                    {.x = 1, .y = 2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = 2, .y = 0},
+                    {.x = -1, .y = 2},
+                    {.x = 2, .y = -1},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = 2, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = 2, .y = 1},
+                    {.x = -1, .y = -2},
+                }, }
+        };
+        return kicks;
+    }
+    else
+    {
+        TetrisKicks kicks = {
+            .kicks = {
+                      {
+                    {.x = 0, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = -1, .y = -1},
+                    {.x = 0, .y = 2},
+                    {.x = -1, .y = 2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = -1, .y = 0},
+                    {.x = -1, .y = 1},
+                    {.x = 0, .y = -2},
+                    {.x = -1, .y = -2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = 1, .y = -1},
+                    {.x = 0, .y = 2},
+                    {.x = 1, .y = 2},
+                }, {
+                    {.x = 0, .y = 0},
+                    {.x = 1, .y = 0},
+                    {.x = 1, .y = 1},
+                    {.x = 0, .y = -2},
+                    {.x = 1, .y = -2},
+                }, }
+        };
+        return kicks;
+    }
+}
+
+void
+tetris_apply_kicks(TetrisPiece* piece, TetrisKicks* kicks, int i)
+{
+    piece->position.x += kicks->kicks[piece->rotation][i].x;
+    piece->position.y -= kicks->kicks[piece->rotation][i].y;
+}
+
+void
 tetris_render_game(void)
 {
     tetris_render_grid();
@@ -507,7 +699,7 @@ tetris_render_tiles(TetrisGridStuff* grid)
 void
 tetris_render_ghost(TetrisGridStuff* grid)
 {
-    TetrisPiece ghost = tetris_copy_piece(&tetris.current_piece);
+    TetrisPiece ghost = tetris_copy_piece(&tetris.current_piece, G);
 
     while (tetris_valid_position(&ghost)) { ++ghost.position.y; }
     --ghost.position.y;
@@ -615,29 +807,14 @@ void
 tetris_handle_input(void)
 {
     int key;
-    do {
+    do
+    {
         key = GetKeyPressed();
 
         switch (key)
         {
-        case KEY_Z:
-            tetris.current_piece.rotation =
-                ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
-            if (!tetris_valid_position(&tetris.current_piece))
-            {
-                tetris.current_piece.rotation =
-                    (tetris.current_piece.rotation + 1) % 4;
-            }
-            break;
-        case KEY_X:
-            tetris.current_piece.rotation =
-                (tetris.current_piece.rotation + 1) % 4;
-            if (!tetris_valid_position(&tetris.current_piece))
-            {
-                tetris.current_piece.rotation =
-                    ((tetris.current_piece.rotation - 1) % 4 + 4) % 4;
-            }
-            break;
+        case KEY_Z: tetris_rotate_ccw(); break;
+        case KEY_X: tetris_rotate_cw(); break;
         case KEY_C:
             if (tetris.hold == 0)
             {
